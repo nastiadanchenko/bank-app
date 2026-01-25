@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: api-gateway
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/bank
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: accounts
+              uri: lb://ACCOUNTS-SERVICE
+              predicates:
+                - Path=/api/accounts/**
+            - id: cash
+              uri: lb://CASH-SERVICE
+              predicates:
+                - Path=/api/cash/**

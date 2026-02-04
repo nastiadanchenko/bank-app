@@ -1,22 +1,86 @@
 spring:
   application:
     name: api-gateway
-
-  security:
-    oauth2:
-      resource-server:
-        jwt:
-          issuer-uri: http://keycloak:8080/realms/bank
+  config:
+    import:
+      - "optional:file:./bootstrap.yml[.properties]"
+      - "optional:configserver:http://localhost:8888" # Параметры подключения к Config Server
   cloud:
-    gateway:
-      server:
-        webflux:
-          routes:
-            - id: accounts
-              uri: lb://ACCOUNTS-SERVICE
-              predicates:
-                - Path=/api/accounts/**
-            - id: cash
-              uri: lb://CASH-SERVICE
-              predicates:
-                - Path=/api/cash/**
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        register-health-check: true
+        health-check-path: /actuator/health
+        service-name: ${spring.application.name}
+        instance-id: ${spring.application.name}:${spring.cloud.consul.discovery.ip-address}:${server.port}
+        prefer-ip-address: true
+        ip-address: host.docker.internal
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        health-check-critical-timeout: 30m
+        health-check-url: http://${spring.cloud.consul.discovery.ip-address}:${server.port}/actuator/health
+    config:
+      fail-fast: true
+
+#  security:
+#    oauth2:
+#      resource-server:
+#        jwt:
+#          # Адрес issuer (Keycloak realm). Gateway по нему получает ключи
+#          # и параметры токена, чтобы валидировать JWT от UI
+#          issuer-uri: http://localhost:8085/realms/bank-realm
+#
+#  cloud:
+#    gateway:
+#      server:
+#        webflux:
+#          routes:
+#            # Имя маршрута (используется в логах и конфигурации)
+#            - id: transfer-service
+#              # Куда Gateway проксирует запросы, подходящие под предикаты
+#              # Здесь это transfer-service
+#              uri: http://localhost:8083
+#              predicates:
+#                # Все запросы с путём /transfers/** попадут на этот маршрут
+#                - Path=/transfers/**
+#              filters:
+#                # Подключаем кастомный фильтр Token Relay
+#                # Он берёт JWT и добавляет заголовок Authorization к исходящему запросу
+#                - name: JwtTokenRelay
+#            - id: accounts-service
+#              uri: http://localhost:8081
+#              predicates:
+#                - Path=/accounts/**
+#              filters:
+#                - name: JwtTokenRelay
+#            - id: cash-service
+#              uri: http://localhost:8084
+#              predicates:
+#                  - Path=/cash/**
+#              filters:
+#                  - name: JwtTokenRelay
+#            - id: notifications-service
+#              uri: http://localhost:8086
+#              predicates:
+#                  - Path=/notifications/**
+#              filters:
+#                  - name: JwtTokenRelay
+
+server:
+  port: 8082
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+#
+#logging:
+#  level:
+#    root: INFO
+#    ru.practicum.bank.gateway: DEBUG
+#    org.springframework.cloud.gateway: DEBUG
+#    org.springframework.security: DEBUG

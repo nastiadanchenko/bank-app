@@ -1,6 +1,17 @@
 databaseChangeLog:
   - changeSet:
-      id: accounts
+      id: 1-account_seq
+      author: liquibase-user
+      changes:
+          - createSequence:
+              sequenceName: account_seq
+              startValue: 1
+              incrementBy: 1
+      rollback:
+        - dropSequence:
+            sequenceName: account_seq
+  - changeSet:
+      id: 2-accounts
       author: liquibase-user
       changes:
         - createTable:
@@ -9,9 +20,9 @@ databaseChangeLog:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
+                  defaultValueSequenceNext: account_seq
               - column:
                   name: login
                   type: VARCHAR(255)
@@ -27,13 +38,22 @@ databaseChangeLog:
                   name: last_name
                   type: VARCHAR(255)
               - column:
-                  name: birthdate
+                  name: birth_date
                   type: timestamp
                   constraints:
-                    nullable: false
+                    nullable: true
               - column:
                   name: balance
                   type: NUMERIC(19,2)
                   defaultValueNumeric: 0.00
                   constraints:
                     nullable: false
+              - column:
+                  name: keycloak_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+      rollback:
+        - dropTable:
+            tableName: accounts

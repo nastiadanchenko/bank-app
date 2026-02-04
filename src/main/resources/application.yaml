@@ -1,25 +1,80 @@
 spring:
   application:
     name: accounts-service
+  config:
+    import: optional:configserver:http://localhost:8888 # Параметры подключения к Config Server
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        ip-address: host.docker.internal
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        health-check-critical-timeout: 30m
+#        hostname: host.docker.internal
+    config:
+      fail-fast: true
 
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-    default-schema: public
-    enabled: true
-
-  datasource:
-    url: jdbc:postgresql://localhost:5432/accounts
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-
-  data:
-    jpa:
-      repositories:
-        enabled: true
+#  security:
+#    oauth2:
+#      resource-server:
+#        jwt:
+#          issuer-uri: http://localhost:8085/realms/bank-realm
+#
+#      client:
+#        registration:
+#          account-service:
+#            provider: keycloak
+#            client-id: account-service
+#            client-secret: fpbcLLRoXyEJolIXEfqMiRMsevqXZnXG
+#            authorization-grant-type: client_credentials
+#        provider:
+#          keycloak:
+#            issuer-uri: http://localhost:8085/realms/bank-realm
+#
+#
+#  liquibase:
+#    change-log: classpath:db/changelog/db.changelog-master.yaml
+#    default-schema: public
+#    enabled: true
+#
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/accounts
+#    username: postgres
+#    password: password
+#    driver-class-name: org.postgresql.Driver
+#    hikari:
+#      maximum-pool-size: 10
+#      minimum-idle: 5
+#
+#  data:
+#    jpa:
+#      repositories:
+#        enabled: true
+#      properties:
+#        hibernate:
+#          default_schema: public
+#          ddl-auto: update
+#
+#bank:
+#  notification-service:
+#    base-url: http://localhost:8086
 
 server:
   port: 8081
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework.security: DEBUG
+#    org.hibernate.SQL: DEBUG
+#    liquibase: debug

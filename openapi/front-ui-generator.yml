@@ -1,0 +1,29 @@
+generatorName: java
+library: webclient
+
+inputSpec: ./merged.yaml
+outputDir: ../front-ui/build/generated
+
+apiPackage: yandex.workshop.frontui.api.accounts
+modelPackage: yandex.workshop.frontui.api.accounts.model
+
+generateApis: false
+generateModels: true
+generateSupportingFiles: false
+generateModelTests: false
+generateApiTests: false
+
+configOptions:
+  dateLibrary: java8
+  useJakartaEe: true
+  jakartaAnnotations: true
+  openApiNullable: false
+  serializableModel: true
+
+typeMappings:
+  LocalDate: java.time.LocalDate
+  BigDecimal: java.math.BigDecimal
+
+importMappings:
+  LocalDate: java.time.LocalDate
+  BigDecimal: java.math.BigDecimal

@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: Bank API
+  version: 1.0.0
+paths:
+  /api/accounts/me:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '204':
+          description: Updated account information
+
+    get:
+      responses:
+        '200':
+          description: Account information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+
+  /api/transfer:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Updated transfer operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+
+  /api/cash:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CashRequest'
+      responses:
+        '200':
+          description: Updated cash operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+
+components:
+  schemas:
+    UpdateAccountRequest:
+      type: object
+      required:
+        - name
+        - birthdate
+      properties:
+        name:
+          type: string
+          example: "Иванов Иван"
+        birthdate:
+          type: string
+          format: date
+          example: "1990-01-01"
+
+    AccountResponse:
+      type: object
+      required:
+        - login
+        - name
+        - birthdate
+        - balance
+      properties:
+        login:
+          type: string
+          example: "иванов123"
+        name:
+          type: string
+          example: "Иванов Иван"
+        birthdate:
+          type: string
+          format: date
+          example: "1990-01-01"
+        balance:
+          type: number
+          example: "1000.00"
+
+    AccountOwnerResponse:
+      type: object
+      required:
+        - accountId
+        - ownerUsername
+      properties:
+        accountId:
+          type: string
+        ownerUsername:
+          type: string
+
+    TransferRequest:
+      type: object
+      required:
+        - fromLogin
+        - toLogin
+        - amount
+      properties:
+        fromLogin:
+          type: string
+        toLogin:
+          type: string
+        amount:
+          type: number
+          example: "100.00"
+
+    CashRequest:
+      type: object
+      required:
+        - action
+        - value
+        - accountId
+        - accountLogin
+      properties:
+        action:
+          type: string
+          example: "PUT"
+        value:
+          type: number
+          example: "100.00"
+        accountId:
+          type: string
+        accountLogin:
+          type: string
+
+    OperationResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          nullable: false
+          description: "Успешно ли выполнена операция"
+        message:
+          type: string
+        data:
+          type: object
+          nullable: false
+          description: "Текстовое сообщение о результате операции"
+
+    NotificationRequest:
+      type: object
+      required:
+        - serviceName
+        - message
+      properties:
+        serviceName:
+          type: string
+          example: "transfer-service"
+        message:
+          type: string
+          example: "Transfer completed successfully."
+

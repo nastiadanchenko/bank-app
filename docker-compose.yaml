@@ -1,0 +1,184 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: bank-postgres
+    environment:
+      POSTGRES_DB: accounts
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h localhost -p 5432 -U postgres" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bank-net
+
+  consul:
+    image: hashicorp/consul:1.16
+    container_name: bank-consul
+    command: agent -dev -client=0.0.0.0
+    ports:
+      - "8500:8500"
+    healthcheck:
+      test: [ "CMD", "curl", "-sf", "http://localhost:8500/v1/status/leader" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - bank-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: bank-keycloak
+    command:
+      - start-dev
+      - --http-port=8080
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+    volumes:
+      - ./keycloak/bank-realm.json:/opt/keycloak/data/import/bank-realm.json
+    ports:
+      - "8085:8080"
+    networks:
+      - bank-net
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: native
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 5s
+      retries: 20
+      timeout: 3s
+    networks:
+      - bank-net
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      config-server:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_APPLICATION_NAME: api-gateway
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 5s
+      retries: 20
+      timeout: 3s
+    networks:
+      - bank-net
+
+  accounts-service:
+    build: ./accounts-service
+    container_name: accounts-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_APPLICATION_NAME: accounts-service
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/accounts
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+    networks:
+      - bank-net
+
+  cash-service:
+    build: ./cash-service
+    container_name: cash-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_APPLICATION_NAME: cash-service
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    networks:
+      - bank-net
+
+
+  transfer-service:
+    build: ./transfer-service
+    container_name: transfer-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_APPLICATION_NAME: transfer-service
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    networks:
+      - bank-net
+
+  notifications-service:
+    build: ./notifications-service
+    container_name: notifications-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_APPLICATION_NAME: notifications-service
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    networks:
+      - bank-net
+
+  front-ui:
+    build: ./front-ui
+    container_name: front-ui
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - bank-net
+
+volumes:
+  pgdata:
+
+networks:
+  bank-net:
+    driver: bridge
+

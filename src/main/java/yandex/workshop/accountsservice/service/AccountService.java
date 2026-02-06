@@ -7,6 +7,8 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,24 @@ public class AccountService {
 
     private final NotificationClient notificationClient;
 
+    public AccountResponse getCurrentAccount(Authentication authentication) {
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        Account account = accountRepository.findByKeycloakId(keycloakId)
+            .orElseGet(() -> {
+                Account newAccount = new Account();
+                newAccount.setKeycloakId(keycloakId);
+                newAccount.setFirstName(jwt.getClaimAsString("given_name"));
+                newAccount.setLastName(jwt.getClaimAsString("family_name"));
+                newAccount.setLogin(jwt.getClaimAsString("preferred_username"));
+                newAccount.setBalance(BigDecimal.ZERO);
+                newAccount.setBirthDate(LocalDate.now());
+                return accountRepository.save(newAccount);
+            });
+
+        return buildDto(account);
+    }
+
     public AccountResponse getCurrentAccount(JwtAuthenticationToken token) {
         UUID keycloakId = UUID.fromString(token.getToken().getSubject());
         Account account = accountRepository.findByKeycloakId(keycloakId)
@@ -45,11 +65,32 @@ public class AccountService {
                 return accountRepository.save(newAccount);
             });
 
-//        sendNotification("Account accessed for user: " +  account.getLogin());
-
         return buildDto(account);
     }
 
+    public AccountResponse updateProfile(Authentication authentication, UpdateAccountRequest dto) {
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        String[] nams = dto.getName().split(" ", 2);
+        Account account = accountRepository.findByKeycloakId(keycloakId)
+            .orElseThrow(() -> new NoSuchElementException("Not found account with keycloakId " + keycloakId));
+        if (nams.length != 0) {
+            if (!nams[0].isBlank()) {
+                account.setFirstName(nams[0]);
+            }
+            if (nams.length > 1 && !nams[1].isBlank()) {
+                account.setLastName(nams[1]);
+            }
+        }
+        if (dto.getBirthdate() != null) {
+            account.setBirthDate(dto.getBirthdate());
+        }
+
+        sendNotification("Account updated for user: " +  account.getLogin());
+
+        return buildDto(accountRepository.save(account));
+
+    }
     public AccountResponse updateProfile(String keycloakId, UpdateAccountRequest dto) {
         String[] nams = dto.getName().split(" ", 2);
         Account account = accountRepository.findByKeycloakId(UUID.fromString(keycloakId))

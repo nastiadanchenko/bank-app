@@ -3,7 +3,10 @@ package yandex.workshop.accountsservice.controller;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,27 +30,31 @@ public class AccountController implements ApiApi {
 
     private final AccountService accountService;
 
-    @GetMapping("/me")
+    @GetMapping(value = "/me",
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('SERVICE')")
-    public AccountResponse getOwnerAccount(JwtAuthenticationToken token) {
-        return accountService.getCurrentAccount(token);
+    public ResponseEntity<AccountResponse> getOwnerAccount(Authentication authentication) {
+        return ResponseEntity.ok(accountService.getCurrentAccount(authentication));
     }
 
-    @PostMapping("/me")
+    @PostMapping(value = "/me",
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
-    public AccountResponse updateAccount(JwtAuthenticationToken token,
+    public AccountResponse updateAccount(Authentication authentication,
                                          @RequestBody UpdateAccountRequest dto) {
-        log.debug("Authorities in PUT: {}", token.getAuthorities());
-        return accountService.updateProfile(token.getToken().getSubject(), dto);
+
+//        log.debug("Authorities in PUT: {}", token.getAuthorities());
+        return accountService.updateProfile(authentication, dto);
     }
 
 
-    @GetMapping("")
+    @GetMapping(value = "",
+        produces = MediaType.APPLICATION_JSON_VALUE)
     public List<AccountResponse> getAccounts(JwtAuthenticationToken token) {
         return accountService.getOtherAccounts(token.getName());
     }
 
-    @PostMapping("/cash")
+    @PostMapping(value = "/cash")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
     public String cash(@RequestBody CashRequest request) {
         log.debug("Authorities in CASH: {}", request);
@@ -69,7 +76,8 @@ public class AccountController implements ApiApi {
             + " на счёт " + request.getToLogin();
     }
 
-    @GetMapping("{accountLogin}/owner")
+    @GetMapping(value = "{accountLogin}/owner",
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('SERVICE')")
     public AccountOwnerResponse getOwner(@PathVariable String accountLogin) {
         var account = accountService.getAccountByLogin(accountLogin);

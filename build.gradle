@@ -10,19 +10,6 @@ plugins {
 
 }
 
-//publishing {
-//    publications {
-//        create<MavenPublication>("mavenJava") {
-//            from(components["java"])
-//            artifact(tasks.named("verifierStubsJar"))
-//        }
-//    }
-//}
-
-//apply plugin: 'java'
-//apply plugin: 'org.springframework.boot'
-//apply plugin: 'io.spring.dependency-management'
-
 group = 'yandex.workshop'
 version = '0.0.1-SNAPSHOT'
 description = 'accounts-service'
@@ -84,7 +71,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-//        mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:4.3.0"
+        mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:4.3.0"
     }
 }
 
@@ -113,24 +100,17 @@ sourceSets {
     }
 }
 
-//contracts {
-//
-////    baseClassMappings {
-////        baseClassMapping(".*accounts.*", "yandex.workshop.accounts.BaseContractTest")
-////    }
-//
-//    contracts {
-//        baseClassForTests.set(
-//                "yandex.workshop.accountsservice.BaseAccountsContractTest"
-//        )
-//    }
-//
-//    testFramework = TestFramework.JUNIT5
-//    failOnNoContracts = false
-//    baseClassForTests = "yandex.workshop.accountsservice.BaseAccountsContractTest"
-////    packageWithBaseClasses = "yandex.workshop.accounts"
-//
-//}
+contracts {
+
+    contracts {
+        baseClassForTests.set(
+                "yandex.workshop.accountsservice.ContractBaseTest"
+        )
+    }
+    testFramework = TestFramework.JUNIT5
+    failOnNoContracts = false
+
+}
 
 tasks.compileJava {
     dependsOn tasks.openApiGenerate

@@ -52,25 +52,19 @@ public class SecurityConfig {
 
         Object rolesObj = realmAccess.get("roles");
 
-        // Если провайдер вдруг вернёт не коллекцию (например, строку или null),
-        // мы не упадём с ClassCastException,
-        // а просто считаем, что ролей нет.
         if (!(rolesObj instanceof Collection<?> rawRoles)) {
             return Collections.emptyList();
         }
 
-        // Приводим всё к списку строк
         List<String> roles = rawRoles.stream()
             .filter(Objects::nonNull)
             .map(Object::toString)
             .toList();
 
-        // Добавляем "ROLE_<имя роли>" для @PreAuthorize("hasRole('...')")
         List<GrantedAuthority> authorities = roles.stream()
             .map(role -> (GrantedAuthority) new SimpleGrantedAuthority("ROLE_" + role))
             .collect(Collectors.toList());
 
-        // Дополнительно маппим бизнес-право на отдельный authority
         if (roles.contains("ACCOUNTS_WRITE")) {
             authorities.add(new SimpleGrantedAuthority("accounts.write"));
         }

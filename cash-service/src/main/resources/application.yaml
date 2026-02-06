@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: cash-service
+  config:
+    import: optional:configserver:http://localhost:8888 # Параметры подключения к Config Server
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        ip-address: host.docker.internal
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        health-check-critical-timeout: 30m
+    config:
+      fail-fast: true
+#  security:
+#    oauth2:
+#      resource-server:
+#        jwt:
+#          issuer-uri: http://localhost:8085/realms/bank-realm
+#
+#      client:
+#        registration:
+#          cash-service:
+#            provider: keycloak
+#            client-id: cash-service
+#            client-secret: hbWy1ujh5VRYh185ECjGmOktu7TjJMoH
+#            authorization-grant-type: client_credentials
+#        provider:
+#          keycloak:
+#            issuer-uri: http://localhost:8085/realms/bank-realm
+
+server:
+  port: 8084
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+#
+#bank:
+#  accounts-service:
+#    base-url: http://localhost:8081
+#  notifications-service:
+#    base-url: http://localhost:8086
+#
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework.webflux.function.server: DEBUG
+#    org.springframework.web: DEBUG
+#    org.springframework.security: DEBUG
+#    org.springframework.security.oauth2.client: DEBUG
+#    org.springframework.security.oauth2.core: DEBUG

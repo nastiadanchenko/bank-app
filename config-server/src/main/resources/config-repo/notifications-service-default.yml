@@ -1,0 +1,34 @@
+spring:
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:8085/realms/bank-realm
+
+      client:
+        registration:
+          notifications-service:
+            provider: keycloak
+            client-id: notifications-service
+            client-secret: S6Go9yKeRwksV47vydTv6R9izMSBFzJM
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8085/realms/bank-realm
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+
+logging:
+  level:
+    root: INFO
+    org.springframework.webflux.function.server: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.security.oauth2.core: DEBUG

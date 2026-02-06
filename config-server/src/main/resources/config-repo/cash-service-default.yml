@@ -1,0 +1,37 @@
+text-to-print: "Текст до изменений" # Property в микросервисе, которое мы будем изменять прямо на лету
+spring:
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:8085/realms/bank-realm
+      client:
+        registration:
+          cash-service:
+            provider: keycloak
+            client-id: cash-service
+            client-secret: hbWy1ujh5VRYh185ECjGmOktu7TjJMoH
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8085/realms/bank-realm
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+bank:
+  accounts-service:
+    base-url: http://accounts-service
+  notifications-service:
+    base-url: http://notification-service
+
+logging:
+  level:
+    root: INFO
+    org.springframework.webflux.function.server: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.security.oauth2.core: DEBUG
+    org.springframework.boot.context.config: DEBUG

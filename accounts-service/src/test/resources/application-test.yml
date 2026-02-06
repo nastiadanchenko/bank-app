@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: account-service
+  config:
+    activate:
+      on-profile: test
+
+  cloud:
+    config:
+      enabled: false
+    consul:
+      enabled: false
+    discovery:
+      enabled: false
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:8085/realms/bank-realm
+      client:
+        registration:
+          account-service:
+            provider: keycloak
+            client-id: account-service
+            client-secret: fpbcLLRoXyEJolIXEfqMiRMsevqXZnXG
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8085/realms/bank-realm
+
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: public
+    enabled: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/accounts
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  data:
+    jpa:
+      repositories:
+        enabled: true
+      properties:
+        hibernate:
+          default_schema: public
+          ddl-auto: update
+
+bank:
+  notification-service:
+    base-url: http://localhost:8086
+
+server:
+  port: 8081
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG

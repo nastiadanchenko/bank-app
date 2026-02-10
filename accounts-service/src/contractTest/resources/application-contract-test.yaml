@@ -1,0 +1,55 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  config:
+    activate:
+      on-profile: contract-test
+
+  cloud:
+    config:
+      enabled: false
+    consul:
+      enabled: false
+    discovery:
+      enabled: false
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          enabled: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: public
+    enabled: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/accounts
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  data:
+    jpa:
+      repositories:
+        enabled: true
+      properties:
+        hibernate:
+          default_schema: public
+          ddl-auto: update
+
+bank:
+  notification-service:
+    base-url: http://localhost:8086
+
+server:
+  port: 8081
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG

@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: front-ui
+  config:
+    import: optional:configserver:http://config-server:8888 # Параметры подключения к Config Server
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        ip-address: config-server
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        health-check-critical-timeout: 30m
+    config:
+      fail-fast: true
+
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          keycloak:
+#            client-id: bank-ui
+#            client-secret: ui-client-secret
+#            scope: openid, profile
+#            authorization-grant-type: authorization_code
+#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#            provider: keycloak
+#        provider:
+#          keycloak:
+#            issuer-uri: http://localhost:8085/realms/bank-realm
+##            authorization-uri: http://localhost:8080/realms/bank/protocol/openid-connect/auth
+##            token-uri: http://localhost:8080/realms/bank/protocol/openid-connect/token
+##            jwk-set-uri: http://localhost:8080/realms/bank/protocol/openid-connect/certs
+##            user-info-uri: http://localhost:8080/realms/bank/protocol/openid-connect/userinfo
+##            user-name-attribute: preferred_username
+#  thymeleaf:
+#    cache: false
+
+
+server:
+  port: 8080
+
+#gateway:
+#  url: http://localhost:8082
+#
+#logging:
+#  level:
+#    root: debug
+#    org.springframework.security: DEBUG
+

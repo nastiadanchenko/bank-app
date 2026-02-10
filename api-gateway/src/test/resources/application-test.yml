@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: api-gateway
+  config:
+    activate:
+      on-profile: test
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          # Адрес issuer (Keycloak realm). Gateway по нему получает ключи
+          # и параметры токена, чтобы валидировать JWT от UI
+          issuer-uri: http://localhost:8085/realms/bank-realm
+
+  cloud:
+    config:
+      enabled: false
+    consul:
+      enabled: false
+    discovery:
+      enabled: false
+    gateway:
+      server:
+        webflux:
+          routes:
+            # Имя маршрута (используется в логах и конфигурации)
+            - id: transfer-service
+              # Куда Gateway проксирует запросы, подходящие под предикаты
+              # Здесь это transfer-service
+              uri: http://localhost:8083
+              predicates:
+                # Все запросы с путём /transfers/** попадут на этот маршрут
+                - Path=/transfers/**
+              filters:
+                # Подключаем кастомный фильтр Token Relay
+                # Он берёт JWT и добавляет заголовок Authorization к исходящему запросу
+                - name: JwtTokenRelay
+            - id: accounts-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/accounts/**
+              filters:
+                - name: JwtTokenRelay
+            - id: cash-service
+              uri: http://localhost:8084
+              predicates:
+                  - Path=/cash/**
+              filters:
+                  - name: JwtTokenRelay
+            - id: notifications-service
+              uri: http://localhost:8086
+              predicates:
+                  - Path=/notifications/**
+              filters:
+                  - name: JwtTokenRelay
+
+server:
+  port: 8082

@@ -1,0 +1,34 @@
+spring:
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:8085/realms/bank-realm
+
+      client:
+        registration:
+          transfer-service:
+            provider: keycloak
+            client-id: transfer-service
+            client-secret: xrBtLBR4QGuLpkOmCLBuL7qiUKkDDRhx
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8085/realms/bank-realm
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+bank:
+  accounts-service:
+    base-url: http://accounts-service
+  notifications-service:
+    base-url: http://notifications-service
+
+logging:
+  level:
+    root: INFO

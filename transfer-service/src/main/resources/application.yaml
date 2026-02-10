@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: transfer-service
+
+  config:
+    import: optional:configserver:http://localhost:8888 # Параметры подключения к Config Server
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        ip-address: host.docker.internal
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        health-check-critical-timeout: 30m
+    config:
+      fail-fast: true
+#  security:
+#    oauth2:
+#      resource-server:
+#        jwt:
+#          issuer-uri: http://localhost:8085/realms/bank-realm
+#
+#      client:
+#        registration:
+#          transfer-service:
+#            provider: keycloak
+#            client-id: transfer-service
+#            client-secret: xrBtLBR4QGuLpkOmCLBuL7qiUKkDDRhx
+#            authorization-grant-type: client_credentials
+#        provider:
+#          keycloak:
+#            issuer-uri: http://localhost:8085/realms/bank-realm
+
+server:
+  port: 8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+#bank:
+#  accounts-service:
+#    base-url: http://localhost:8081
+#  notifications-service:
+#    base-url: http://localhost:8086
+#
+#logging:
+#  level:
+#    root: INFO

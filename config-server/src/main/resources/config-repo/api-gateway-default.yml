@@ -1,0 +1,57 @@
+spring:
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          # Адрес issuer (Keycloak realm). Gateway по нему получает ключи
+          # и параметры токена, чтобы валидировать JWT от UI
+          issuer-uri: http://localhost:8085/realms/bank-realm
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # Имя маршрута (используется в логах и конфигурации)
+            - id: transfer-service
+              # Куда Gateway проксирует запросы, подходящие под предикаты
+              # Здесь это transfer-service
+              uri: http://transfer-service
+              predicates:
+                # Все запросы с путём /transfers/** попадут на этот маршрут
+                - Path=/transfers/**
+              filters:
+                # Подключаем кастомный фильтр Token Relay
+                # Он берёт JWT и добавляет заголовок Authorization к исходящему запросу
+                - name: JwtTokenRelay
+            - id: accounts-service
+              uri: http://accounts-service
+              predicates:
+                - Path=/accounts/**
+              filters:
+                - name: JwtTokenRelay
+            - id: cash-service
+              uri: http://cash-service
+              predicates:
+                - Path=/cash/**
+              filters:
+                - name: JwtTokenRelay
+            - id: notifications-service
+              uri: http://notification-service
+              predicates:
+                - Path=/notifications/**
+              filters:
+                - name: JwtTokenRelay
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    root: INFO
+    ru.practicum.bank.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG

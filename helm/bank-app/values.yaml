@@ -1,0 +1,117 @@
+global:
+  security:
+    allowInsecureImages: true
+  postgresql:
+    auth:
+      postgresPassword: password
+      username: postgres
+      password: password
+      database: keycloak
+    postgresqlPassword: password
+    postgresqlUsername: postgres
+
+# PostgreSQL для Keycloak и accounts
+postgresql:
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: "latest"
+  auth:
+    postgresPassword: password
+    username: postgres
+    password: password
+    database: keycloak
+    existingSecret: "postgres-password"
+  primary:
+    service:
+      ports:
+        postgresql: 5432
+
+  initdb:
+    scripts:
+      create-accounts-db.sql: |
+        CREATE DATABASE accounts;
+
+
+keycloak:
+  image:
+    repository: docker.io/codecentric/keycloakx
+    tag: latest
+  service:
+    type: ClusterIP
+    ports:
+      http: 8085
+
+  # admin credentials
+  secret:
+    create: true
+    username: admin
+    password: admin
+
+
+  extraEnv: |
+    - name: KC_DB
+      value: postgres
+    - name: KC_DB_URL
+      value: jdbc:postgresql://bank-app-postgresql:5432/keycloak
+    - name: KC_DB_USERNAME
+      value: postgres
+    - name: KC_DB_PASSWORD
+      value: password
+    - name: KC_HOSTNAME
+      value: keycloak.local
+    # realm import
+    - name: KEYCLOAK_IMPORT
+      value: /opt/keycloak/data/import/bank-realm.json
+
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: keycloak-realm
+
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: /opt/keycloak/data/import
+      readOnly: true
+
+accounts:
+  enabled: true
+  image:
+    repository: accounts-service
+    tag: "0.0.1-SNAPSHOT"
+  service:
+    port: 8081
+
+cash:
+  enabled: true
+  image:
+    repository: cash-service
+    tag: "0.0.1-SNAPSHOT"
+  service:
+    port: 8084
+
+front-ui:
+  enabled: true
+  image:
+    repository: front-ui
+    tag: "0.0.1-SNAPSHOT"
+  service:
+    port: 8080
+
+
+notifications:
+  enabled: true
+  image:
+    repository: notifications-service
+    tag: "0.0.1-SNAPSHOT"
+  service:
+    port: 8086
+
+
+transfer:
+  enabled: true
+  image:
+    repository: transfer-service
+    tag: "0.0.1-SNAPSHOT"
+  service:
+    port: 8083

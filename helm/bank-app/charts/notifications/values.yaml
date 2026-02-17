@@ -1,0 +1,84 @@
+
+replicaCount: 1
+
+image:
+  repository: notification-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8086
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: bank.local
+      paths:
+        - path: /notification
+          pathType: Prefix
+  tls: []
+
+resources: {}
+
+env:
+  SPRING_APPLICATION_NAME: notification-service
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://bank-app-keycloak.default.svc.cluster.local:8085/realms/bank-realm
+  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_NOTIFICATION_SERVICE_PROVIDER: keycloak
+  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_NOTIFICATION_SERVICE_CLIENT_ID: notification-service
+  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_NOTIFICATION_SERVICE_AUTHORIZATION_GRANT_TYPE: client_credentials
+  SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI: http://bank-app-keycloak.default.svc.cluster.local:8085/realms/bank-realm
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "*"
+  BANK_ACCOUNTS_SERVICE_BASE_URL: http://bank-app-accounts.default.svc.cluster.local:8081
+  LOGGING_LEVEL_ROOT: INFO
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: DEBUG
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2_CLIENT: DEBUG
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2_CORE: DEBUG
+
+secrets:
+  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ""
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: http
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

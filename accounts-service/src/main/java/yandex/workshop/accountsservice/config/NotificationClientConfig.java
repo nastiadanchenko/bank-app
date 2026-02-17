@@ -1,7 +1,7 @@
 package yandex.workshop.accountsservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+//import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class NotificationClientConfig {
 
     @Bean
-    @LoadBalanced
+//    @LoadBalanced
     public WebClient.Builder loadBalancedWebClientBuilder() {
         return WebClient.builder();
     }
@@ -43,8 +43,8 @@ public class NotificationClientConfig {
     }
 
     @Bean
-    @LoadBalanced
-    public WebClient notificationWebClient(@LoadBalanced WebClient.Builder builder,
+//    @LoadBalanced
+    public WebClient notificationWebClient( WebClient.Builder builder,
         OAuth2AuthorizedClientManager authorizedClientManager,
         @Value("${bank.notification-service.base-url}") String accountsServiceBaseUrl
     ) {

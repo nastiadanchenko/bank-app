@@ -17,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class NotificationClientConfig {
 
     @Bean
-//    @LoadBalanced
     public WebClient.Builder loadBalancedWebClientBuilder() {
         return WebClient.builder();
     }
@@ -43,7 +42,6 @@ public class NotificationClientConfig {
     }
 
     @Bean
-//    @LoadBalanced
     public WebClient notificationWebClient( WebClient.Builder builder,
         OAuth2AuthorizedClientManager authorizedClientManager,
         @Value("${bank.notification-service.base-url}") String accountsServiceBaseUrl

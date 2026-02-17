@@ -1,4 +1,4 @@
-# Bank App — многомодульное микросервисное приложение
+# Bank App - многомодульное микросервисное приложение (Kubernetes + Helm)
 
 ## Стек технологий
 ### Backend
@@ -8,10 +8,6 @@
 * Spring Data JPA (Hibernate)
 * Spring Security
 * OAuth2 / OpenID Connect
-### Spring Cloud
-* Spring Cloud Config Server / Client - централизованная конфигурация
-* Spring Cloud Consul Discovery - Consul docker image и health-check
-* Spring Cloud Gateway - API Gateway
 ### Безопасность
 * Keycloak — Identity Provider
 * JWT — access tokens
@@ -21,26 +17,33 @@
 * Liquibase - миграции схемы БД
 ### Инфраструктура и DevOps
 * Docker
-* docker-compose
+* Kubernetes
+* Helm
+* NGINX Ingress Controller
 * Gradle (multi-module project)
 ### Тестирование
 * JUnit 5
 * Spring Boot Test
 * Testcontainers (PostgreSQL, Keycloak)
 * Spring Security Test
+* Helm tests
 
 ---
 
 ## Общее описание
 
-**bank-app** — микросервисный проект, реализующий банковский домен. 
-Проект построен на Spring Boot и Spring Cloud:
-* конфигурации микросервисов через Spring Cloud Config
-* сервис-дискавери через Consul
-* централизованной аутентификации и авторизации через Keycloak (OAuth2 / OIDC)
-* взаимодействия сервисов по HTTP
-* контейнеризации через Docker / docker-compose
-* интеграционного тестирования с Testcontainers
+**bank-app** - микросервисное банковское приложение, развёрнутое в Kubernetes с использованием Helm.
+
+**Особенности архитектуры:**
+
+* каждый микросервис развёрнут как Deployment
+* база данных развёрнута как StatefulSet
+* Service Discovery реализован средствами Kubernetes (Service + DNS)
+* централизованная конфигурация реализована через ConfigMaps
+* секреты хранятся в Kubernetes Secrets
+* авторизация реализована через Keycloak, развёрнутый в Kubernetes
+* внешний доступ осуществляется через Ingress Controller
+* Helm используется для пакетирования и развёртывания приложения
 
 Проект является многомодульным Gradle-проектом.
 
@@ -48,6 +51,18 @@
 
 ```
 bank-app/
+|
+├── helm/ 
+│   └── bank-app/ (umbrella chart) 
+│       ├── charts/ 
+│       |   ├── accounts/ 
+│       |   ├── cash/ 
+│       |   ├── notifications/ 
+│       |   ├── transfer/ 
+│       |   └── front-ui/
+|       ├── templates/
+|       └── values.yaml
+|
 ├── config-server/
 ├── api-gateway/
 ├── accounts-service/
@@ -60,77 +75,13 @@ bank-app/
 └── settings.gradle
 ```
 
-Каждый сервис — самостоятельное Spring Boot приложение.
+Каждый сервис - самостоятельное Spring Boot приложение.
 
 ---
 
 ## Описание сервисов
 
-### 1. Config Server (`config-server`)
-
-**Назначение:**
-Централизованное хранение и раздача конфигураций для всех микросервисов.
-
-**Технологии:**
-
-* Spring Cloud Config Server
-* Native backend (classpath)
-
-**Особенности:**
-
-* Конфигурации хранятся внутри JAR в каталоге `config-repo/`
-* Каждый сервис получает конфиг по шаблону:
-
-  ```
-  /{application-name}/{profile}
-  ```
-
-**Пример запроса:**
-
-```
-GET http://config-server:8888/cash-service/default
-```
-
----
-
-### 2. Service Discovery — Consul
-
-**Назначение:**
-
-* регистрация сервисов
-* health-check
-* service discovery
-
-**Использование:**
-Каждый сервис при старте:
-
-* регистрируется в Consul
-* публикует HTTP health-check
-
-**Health-check:**
-
-```
-/actuator/health
-```
-
----
-
-### 3. API Gateway (`api-gateway`)
-
-**Назначение:**
-
-* единая точка входа в систему
-* маршрутизация запросов
-* интеграция с OAuth2 / Keycloak
-
-**Функции:**
-
-* проверка JWT токенов
-* проксирование запросов во внутренние сервисы
-
----
-
-### 4. Accounts Service (`accounts-service`)
+### Accounts Service (`accounts-service`)
 
 **Назначение:**
 
@@ -142,15 +93,9 @@ GET http://config-server:8888/cash-service/default
 * работа с PostgreSQL
 * Liquibase для миграций
 
-**Интеграции:**
-
-* Config Server
-* Consul
-* Keycloak (Resource Server)
-
 ---
 
-### 5. Cash Service (`cash-service`)
+### Cash Service (`cash-service`)
 
 **Назначение:**
 
@@ -163,7 +108,7 @@ GET http://config-server:8888/cash-service/default
 
 ---
 
-### 6. Notifications Service (`notifications-service`)
+### Notifications Service (`notifications-service`)
 
 **Назначение:**
 
@@ -174,7 +119,7 @@ GET http://config-server:8888/cash-service/default
 * REST API для приёма событий
 * взаимодействие с другими сервисами
 
-### 7. Transfer Service (`transfer-service`)
+### Transfer Service (`transfer-service`)
 
 **Назначение:**
 
@@ -185,7 +130,7 @@ GET http://config-server:8888/cash-service/default
 * бизнес-логика денежных операций
 * вызовы `accounts-service`
 
-### 8. Front UI (front-ui)
+### Front UI (front-ui)
 
 **Назначение:**
 
@@ -199,48 +144,64 @@ GET http://config-server:8888/cash-service/default
 **Особенности:**
 
 * разворачивается как отдельный сервис
-* не взаимодействует напрямую с Config Server и Consul
 * использует API Gateway как единую точку входа
 
-
-### Service Discovery — Consul
-Реализация: Service Discovery реализован за счёт использования официального Docker-образа HashiCorp Consul.
-
-**Назначение:**
-
-* регистрация сервисов
-* health-check
-* service discovery
-
-**Использование:** Каждый сервис при старте:
-
-* регистрируется в Consul
-* публикует HTTP health-check
-
-**Health-check:**
-```
- /actuator/health
-```
 ---
+
+### Service Discovery 
+Service Discovery реализован через Kubernetes DNS.
+
+Пример обращения между сервисами:
+
+```
+http://accounts:8081
+http://notifications:8086
+```
+Kubernetes автоматически резолвит имена сервисов.
+
+Consul, Eureka, Spring Cloud Discovery НЕ используются.
 
 ---
 
 ## Конфигурация
 
-### Config Server
+##### Externalized Configuration
 
-Конфигурации сервисов лежат в:
+Конфигурация хранится в:
 
-```
-config-server/src/main/resources/config-repo/
-```
+* ConfigMaps
+* Secrets
 
 Пример:
 
+ConfigMap:
 ```
-cash-service-default.yml
-accounts-service-default.yml
+DATABASE_HOST
+SERVER_PORT
+KEYCLOAK_URL
 ```
+Secret:
+```
+DATABASE_PASSWORD
+CLIENT_SECRET
+```
+Spring Cloud Config НЕ используется.
+
+---
+
+### Helm Charts
+
+Используется зонтичный Helm chart:
+* bank-app
+
+Включает сабчарты:
+* accounts
+* cash
+* notifications
+* transfer
+* front-ui
+* postgresql
+* keycloak
 
 ---
 
@@ -265,22 +226,43 @@ accounts-service-default.yml
 ### Сборка Docker-образов
 
 ```bash
-docker-compose build
+./gradlew bootBuildImage 
 ```
 
-### Запуск всех сервисов
+## Развёртывание в Kubernetes
+Требования
 
-```bash
-docker-compose up -d
+Установлены:
+* Kubernetes (minikube / kind / rancher desktop)
+* kubectl
+* helm
+
+**Создание namespace**
+```
+kubectl create namespace bank
+```
+**Установка приложения**
+```
+helm install bank-app ./helm/bank-app -n bank
 ```
 
-Сервисы стартуют в следующем порядке:
+**Доступ к приложению**
 
-1. Consul
-2. Config Server
-3. Keycloak
-4. Postgres 
-5. Бизнес-сервисы
+Ingress host:
+
+```
+http://bank.local
+```
+
+**Проверка Helm тестов**
+
+Helm tests проверяют доступность сервисов.
+
+Запуск:
+
+```
+helm test bank-app -n bank
+```
 
 ---
 
@@ -291,14 +273,6 @@ docker-compose up -d
 ```bash
 ./gradlew test
 ```
-
-### Особенности тестов
-
-* В тестовом профиле (`test`):
-
-    * отключён Config Server
-    * отключён Consul
-    * Security может быть выключена или замокана
 
 ---
 

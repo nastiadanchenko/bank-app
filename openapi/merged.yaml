@@ -160,7 +160,9 @@ components:
       type: object
       required:
         - serviceName
+        - userId
         - message
+        - timestamp
       properties:
         serviceName:
           type: string
@@ -168,4 +170,8 @@ components:
         message:
           type: string
           example: "Transfer completed successfully."
+        userId:
+          type: string
+        timestamp:
+          type: object
 

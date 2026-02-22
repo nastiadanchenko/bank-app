@@ -1,13 +1,6 @@
 spring:
   application:
     name: accounts-service
-  cloud:
-    config:
-      enabled: false
-    consul:
-      enabled: false
-    discovery:
-      enabled: false
 
   security:
     oauth2:
@@ -49,6 +42,18 @@ spring:
         hibernate:
           default_schema: public
           ddl-auto: update
+
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
+    admin:
+      client-id: "5L6g3nShT-eMCtK--X86sw"
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      client-id: "5L6g3nShT-eMCtK--X86sw"
+      properties:
+        spring.json.type.mapping: notificationRequest:yandex.workshop.account.api.accounts.model.NotificationRequest
 
 bank:
   notification-service:

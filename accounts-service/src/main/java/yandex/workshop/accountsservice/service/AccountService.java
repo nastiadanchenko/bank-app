@@ -1,6 +1,7 @@
 package yandex.workshop.accountsservice.service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -17,7 +18,6 @@ import yandex.workshop.account.api.accounts.model.CashRequest;
 import yandex.workshop.account.api.accounts.model.NotificationRequest;
 import yandex.workshop.account.api.accounts.model.TransferRequest;
 import yandex.workshop.account.api.accounts.model.UpdateAccountRequest;
-import yandex.workshop.accountsservice.client.NotificationClient;
 import yandex.workshop.accountsservice.entity.Account;
 import yandex.workshop.accountsservice.repository.AccountRepository;
 
@@ -31,7 +31,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
 
-    private final NotificationClient notificationClient;
+    private final NotificationProducer notificationProducer;
 
     public AccountResponse getCurrentAccount(Authentication authentication) {
         Jwt jwt = (Jwt) authentication.getPrincipal();
@@ -86,7 +86,7 @@ public class AccountService {
             account.setBirthDate(dto.getBirthdate());
         }
 
-        sendNotification("Account updated for user: " +  account.getLogin());
+        sendNotification("Account updated for user: " +  account.getLogin(), account.getKeycloakId().toString());
 
         return buildDto(accountRepository.save(account));
 
@@ -107,7 +107,7 @@ public class AccountService {
             account.setBirthDate(dto.getBirthdate());
         }
 
-        sendNotification("Account updated for user: " +  account.getLogin());
+        sendNotification("Account updated for user: " +  account.getLogin(), account.getKeycloakId().toString());
 
         return buildDto(accountRepository.save(account));
 
@@ -178,11 +178,13 @@ public class AccountService {
         accountRepository.save(account);
     }
 
-    private void sendNotification(String message) {
-        notificationClient.notify(
+    private void sendNotification(String message, String userId) {
+        notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
-                .message(message));
+                .message(message)
+                .timestamp(Instant.now())
+                .userId(userId));
     }
 }
 

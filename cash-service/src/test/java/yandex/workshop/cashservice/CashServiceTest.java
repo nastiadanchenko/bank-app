@@ -16,21 +16,22 @@ import org.springframework.test.util.ReflectionTestUtils;
 import yandex.workshop.cashservice.api.accounts.model.CashRequest;
 import yandex.workshop.cashservice.api.accounts.model.NotificationRequest;
 import yandex.workshop.cashservice.client.AccountsClient;
-import yandex.workshop.cashservice.client.NotificationClient;
 import yandex.workshop.cashservice.service.CashService;
+import yandex.workshop.cashservice.service.NotificationProducer;
+
 @ExtendWith(MockitoExtension.class)
 public class CashServiceTest {
     @Mock
     private AccountsClient accountsClient;
 
     @Mock
-    private NotificationClient notificationClient;
+    private NotificationProducer notificationProducer;
 
     private CashService cashService;
 
     @BeforeEach
     void setUp() {
-        cashService = new CashService(accountsClient, notificationClient);
+        cashService = new CashService(accountsClient, notificationProducer);
         ReflectionTestUtils.setField(cashService, "serviceName", "cash-service");
     }
 
@@ -48,7 +49,7 @@ public class CashServiceTest {
         assertThat(result).isEqualTo("OK: added 10.00");
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notificationClient).notify(cap.capture());
+        verify(notificationProducer).send(cap.capture());
 
         NotificationRequest sent = cap.getValue();
         assertThat(sent).isNotNull();
@@ -74,7 +75,7 @@ public class CashServiceTest {
         assertThat(result).isEqualTo(errorMsg);
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notificationClient).notify(cap.capture());
+        verify(notificationProducer).send(cap.capture());
 
         NotificationRequest sent = cap.getValue();
         assertThat(sent.getServiceName()).isEqualTo("cash-service");

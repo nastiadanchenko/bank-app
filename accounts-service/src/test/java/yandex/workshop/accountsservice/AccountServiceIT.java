@@ -1,5 +1,8 @@
 package yandex.workshop.accountsservice;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,16 +23,12 @@ import yandex.workshop.account.api.accounts.model.CashRequest;
 import yandex.workshop.account.api.accounts.model.NotificationRequest;
 import yandex.workshop.account.api.accounts.model.TransferRequest;
 import yandex.workshop.account.api.accounts.model.UpdateAccountRequest;
-import yandex.workshop.accountsservice.client.NotificationClient;
 import yandex.workshop.accountsservice.entity.Account;
 import yandex.workshop.accountsservice.repository.AccountRepository;
 import yandex.workshop.accountsservice.service.AccountService;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
+import yandex.workshop.accountsservice.service.NotificationProducer;
 
 @SpringBootTest(properties = {
-    "spring.cloud.config.enabled=false",
     "spring.liquibase.enabled=true",
     "spring.jpa.hibernate.ddl-auto=none"
 })
@@ -44,7 +43,7 @@ public class AccountServiceIT {
     private AccountRepository accountRepository;
 
     @MockitoBean
-    private NotificationClient notificationClient;
+    private NotificationProducer notificationProducer;
 
     @BeforeEach
     void cleanup() {
@@ -103,7 +102,7 @@ public class AccountServiceIT {
         assertThat(updated.getBirthDate()).isEqualTo(LocalDate.of(1985, 5, 5));
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notificationClient).notify(cap.capture());
+        verify(notificationProducer).send(cap.capture());
         assertThat(cap.getValue().getMessage()).contains("Account updated for user");
     }
 

@@ -1,13 +1,13 @@
 package yandex.workshop.cashservice.service;
 
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import yandex.workshop.cashservice.api.accounts.model.NotificationRequest;
 import yandex.workshop.cashservice.api.accounts.model.CashRequest;
+import yandex.workshop.cashservice.api.accounts.model.NotificationRequest;
 import yandex.workshop.cashservice.client.AccountsClient;
-import yandex.workshop.cashservice.client.NotificationClient;
 
 @Slf4j
 @Service
@@ -16,7 +16,9 @@ public class CashService {
 
     private final AccountsClient accountsClient;
 
-    public final NotificationClient notificationClient;
+//    public final NotificationClient notificationClient;
+
+    private final NotificationProducer notificationProducer;
 
     @Value("${spring.application.name}")
     public String serviceName;
@@ -30,16 +32,19 @@ public class CashService {
 
         sendNotification("Cash operation " + request.getAction() +
             " of " + request.getValue() +
-            " for " + request.getAccountLogin());
+            " for " + request.getAccountLogin(), request.getAccountId()
+            );
 
         return result;
     }
 
 
-    private void sendNotification(String message) {
-        notificationClient.notify(
+    private void sendNotification(String message, String userId) {
+        notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
-                .message(message));
+                .message(message)
+                .timestamp(Instant.now())
+                .userId(userId));
     }
 }

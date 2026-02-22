@@ -48,7 +48,7 @@ spring:
     admin:
       client-id: "5L6g3nShT-eMCtK--X86sw"
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       client-id: "5L6g3nShT-eMCtK--X86sw"

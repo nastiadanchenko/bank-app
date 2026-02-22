@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "accounts.fullname" . }}-config
+  labels:
+    app.kubernetes.io/name: {{ include "accounts.fullname" . }}
+    app.kubernetes.io/component: backend
+data:
+  DATABASE_HOST: {{ .Values.env.DATABASE_HOST | quote }}
+  DATABASE_PORT: {{ .Values.env.DATABASE_PORT | quote }}
+  DATABASE_NAME: {{ .Values.env.DATABASE_NAME | quote }}
+  DATABASE_USERNAME: {{ .Values.env.DATABASE_USERNAME | quote }}
+  KEYCLOAK_OAUTH2_URL: {{ .Values.env.KEYCLOAK_OAUTH2_URL | quote }}
+  ACCOUNT_SERVICE_OAUTH2_CLIENT_ID: {{ .Values.env.ACCOUNT_SERVICE_OAUTH2_CLIENT_ID | quote }}
+{{/*  SERVER_PORT: {{ .Values.service.port | quote }}*/}}
+  NOTIFICATION_SERVICE_URL: {{ .Values.env.NOTIFICATION_SERVICE_URl | quote }}

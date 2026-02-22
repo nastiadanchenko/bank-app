@@ -1,7 +1,0 @@
-# src/main/resources/bootstrap.yml
-spring:
-  cloud:
-    consul:
-      discovery:
-        ip-address: host.docker.internal
-        prefer-ip-address: true

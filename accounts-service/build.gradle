@@ -30,10 +30,6 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    set('springCloudVersion', "2025.0.1")
-}
-
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -42,9 +38,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
@@ -70,7 +63,6 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:4.3.0"
     }
 }

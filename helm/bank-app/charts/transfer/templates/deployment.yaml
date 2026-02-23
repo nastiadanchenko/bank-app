@@ -52,9 +52,9 @@ spec:
           {{- end }}
           envFrom:
             - configMapRef:
-                name: transfer-config
-            - configMapRef:
-                name: {{ .Values.secrets.name }}
+                name: {{ include "transfer.fullname" . }}-config
+            - secretRef:
+                name: {{ include "transfer.fullname" . }}-secret
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

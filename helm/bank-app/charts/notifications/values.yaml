@@ -39,7 +39,13 @@ ingress:
           pathType: Prefix
   tls: []
 
-resources: {}
+resources:
+  limits:
+    cpu: 500m
+    memory: 768Mi
+  requests:
+    cpu: 250m
+    memory: 512Mi
 
 env:
   SPRING_APPLICATION_NAME: notification-service
@@ -55,6 +61,7 @@ env:
   LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
   LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2_CLIENT: DEBUG
   LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2_CORE: DEBUG
+  BOOTSTRAP_SERVERS: bank-app-kafka-broker:9092
 
 secrets:
   SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ""
@@ -63,10 +70,12 @@ livenessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  initialDelaySeconds: 120
 readinessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  initialDelaySeconds: 120
 
 autoscaling:
   enabled: false

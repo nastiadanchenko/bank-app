@@ -50,10 +50,10 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        - envFrom:
-            - secretRef:
+          envFrom:
+            secretRef:
                 name: {{ include "accounts.fullname" . }}-secrets
-            - configMapRef:
+            configMapRef:
                 name: {{ include "accounts.fullname" . }}-config
       {{- with .Values.volumes }}
       volumes:

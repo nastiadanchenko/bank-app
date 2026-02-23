@@ -46,7 +46,7 @@ env:
   SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI: http://bank-app-keycloak.default.svc.cluster.local:8085/realms/bank-realm
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "*"
   BANK_ACCOUNTS_SERVICE_BASE_URL: http://bank-app-accounts.default.svc.cluster.local:8081
-  BANK_NOTIFICATIONS_SERVICE_BASE_URL: http://bank-app-notifications.default.svc.cluster.local:8086
+  BOOTSTRAP_SERVERS: bank-app-kafka-broker:9092
   LOGGING_LEVEL_ROOT: INFO
   LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: DEBUG
   LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
@@ -54,18 +54,26 @@ env:
   LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2_CORE: DEBUG
 
 secrets:
-  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_SECRET: hbWy1ujh5VRYh185ECjGmOktu7TjJMoH
+  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_SECRET: ""
 
-resources: {}
+resources:
+  limits:
+    cpu: 500m
+    memory: 768Mi
+  requests:
+    cpu: 250m
+    memory: 512Mi
 
 livenessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  initialDelaySeconds: 120
 readinessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  initialDelaySeconds: 120
 
 autoscaling:
   enabled: false

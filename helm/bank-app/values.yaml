@@ -10,6 +10,18 @@ global:
     postgresqlPassword: password
     postgresqlUsername: postgres
 
+kafka:
+  ui:
+    enabled: true
+    service:
+      type: ClusterIP
+      port: 8087
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hostname: kafka-ui.local
+
+
 # PostgreSQL для Keycloak и accounts
 postgresql:
   image:
@@ -17,11 +29,9 @@ postgresql:
     repository: bitnami/postgresql
     tag: "latest"
   auth:
-    postgresPassword: password
+    existingSecret: postgres-password
     username: postgres
-    password: password
     database: keycloak
-    existingSecret: "postgres-password"
   primary:
     service:
       ports:
@@ -41,14 +51,11 @@ keycloak:
     type: ClusterIP
     ports:
       http: 8085
-
   # admin credentials
   secret:
     create: true
     username: admin
     password: admin
-
-
   extraEnv: |
     - name: KC_DB
       value: postgres

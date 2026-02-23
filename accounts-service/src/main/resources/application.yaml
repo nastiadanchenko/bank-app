@@ -55,10 +55,6 @@ spring:
       properties:
         spring.json.type.mapping: notificationRequest:yandex.workshop.account.api.accounts.model.NotificationRequest
 
-bank:
-  notification-service:
-    base-url: ${NOTIFICATION_SERVICE_URl:http://localhost:8086}
-
 server:
   port: ${SERVER_PORT:8081}
 

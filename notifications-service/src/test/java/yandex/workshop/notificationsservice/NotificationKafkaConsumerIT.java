@@ -13,7 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
-import yandex.workshop.notifications_service.api.accounts.model.NotificationRequest;
+import yandex.workshop.api.model.NotificationRequest;
 import yandex.workshop.notificationsservice.service.NotificationConsumer;
 
 

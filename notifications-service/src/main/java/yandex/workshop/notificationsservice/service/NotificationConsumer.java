@@ -3,7 +3,7 @@ package yandex.workshop.notificationsservice.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import yandex.workshop.notifications_service.api.accounts.model.NotificationRequest;
+import yandex.workshop.api.model.NotificationRequest;
 
 @Service
 @Slf4j

@@ -13,7 +13,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
-import yandex.workshop.notifications_service.api.accounts.model.NotificationRequest;
+import yandex.workshop.api.model.NotificationRequest;
 
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfiguration {

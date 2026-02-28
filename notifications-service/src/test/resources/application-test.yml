@@ -29,7 +29,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.type.mapping: notificationRequest:yandex.workshop.notifications_service.api.accounts.model.NotificationRequest
+        spring.json.type.mapping: notificationRequest:yandex.workshop.api.model.NotificationRequest
       group-id: bank-notifications
       auto-offset-reset: earliest
     listener:

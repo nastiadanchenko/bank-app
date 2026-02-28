@@ -5,9 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import yandex.workshop.cashservice.api.accounts.model.CashRequest;
-import yandex.workshop.cashservice.api.accounts.model.NotificationRequest;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.NotificationRequest;
 import yandex.workshop.cashservice.client.AccountsClient;
+import yandex.workshop.sharedkafka.NotificationProducer;
 
 @Slf4j
 @Service
@@ -22,6 +23,9 @@ public class CashService {
 
     @Value("${spring.application.name}")
     public String serviceName;
+
+    @Value("${topic.notification}")
+    private String topicName;
 
 
     public String submit(CashRequest request) {
@@ -45,6 +49,6 @@ public class CashService {
                 .serviceName(serviceName)
                 .message(message)
                 .timestamp(Instant.now())
-                .userId(userId));
+                .userId(userId), topicName);
     }
 }

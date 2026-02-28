@@ -105,8 +105,6 @@ bank-app/
 |       ├── templates/
 |       └── values.yaml
 |
-├── config-server/
-├── api-gateway/
 ├── accounts-service/
 ├── cash-service/
 ├── notifications-service/

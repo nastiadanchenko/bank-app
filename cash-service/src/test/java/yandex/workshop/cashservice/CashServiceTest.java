@@ -1,23 +1,25 @@
 package yandex.workshop.cashservice;
 
-import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import java.math.BigDecimal;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.util.ReflectionTestUtils;
-import yandex.workshop.cashservice.api.accounts.model.CashRequest;
-import yandex.workshop.cashservice.api.accounts.model.NotificationRequest;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.NotificationRequest;
 import yandex.workshop.cashservice.client.AccountsClient;
 import yandex.workshop.cashservice.service.CashService;
-import yandex.workshop.cashservice.service.NotificationProducer;
+import yandex.workshop.sharedkafka.NotificationProducer;
 
 @ExtendWith(MockitoExtension.class)
 public class CashServiceTest {
@@ -28,6 +30,9 @@ public class CashServiceTest {
     private NotificationProducer notificationProducer;
 
     private CashService cashService;
+
+    @Value("${topic.notification}")
+    public String testTopicName;
 
     @BeforeEach
     void setUp() {
@@ -49,7 +54,7 @@ public class CashServiceTest {
         assertThat(result).isEqualTo("OK: added 10.00");
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notificationProducer).send(cap.capture());
+        verify(notificationProducer).send(cap.capture(), eq(testTopicName));
 
         NotificationRequest sent = cap.getValue();
         assertThat(sent).isNotNull();
@@ -75,7 +80,7 @@ public class CashServiceTest {
         assertThat(result).isEqualTo(errorMsg);
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notificationProducer).send(cap.capture());
+        verify(notificationProducer).send(cap.capture(), eq(testTopicName));
 
         NotificationRequest sent = cap.getValue();
         assertThat(sent.getServiceName()).isEqualTo("cash-service");

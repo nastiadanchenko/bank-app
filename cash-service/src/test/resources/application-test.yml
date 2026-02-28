@@ -30,7 +30,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       client-id: "5L6g3nShT-eMCtK--X86sw"
       properties:
-        spring.json.type.mapping: notificationRequest:yandex.workshop.cashservice.api.accounts.model.NotificationRequest
+        spring.json.type.mapping: notificationRequest:yandex.workshop.sharedkafka.NotificationProducer
 
 topic:
   notification: notifications
@@ -38,8 +38,6 @@ topic:
 bank:
   accounts-service:
     base-url: http://localhost:8081
-  notifications-service:
-    base-url: http://localhost:8086
 
 server:
   port: 8084

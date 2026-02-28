@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import yandex.workshop.cashservice.api.accounts.model.CashRequest;
+import yandex.workshop.api.model.CashRequest;
 import yandex.workshop.cashservice.service.CashService;
 
 @Slf4j

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import yandex.workshop.cashservice.api.accounts.model.CashRequest;
+import yandex.workshop.api.model.CashRequest;
 
 @Component
 public class AccountsClient {

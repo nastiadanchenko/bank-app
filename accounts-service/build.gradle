@@ -4,7 +4,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.10'
     id 'io.spring.dependency-management' version '1.1.7'
-    id "org.openapi.generator" version "7.6.0"
     id "org.springframework.cloud.contract" version "4.3.0"
     id "maven-publish"
 
@@ -31,6 +30,9 @@ repositories {
 }
 
 dependencies {
+    implementation project(":api-contract")
+    implementation project(":shared-kafka")
+
     implementation 'org.springframework.kafka:spring-kafka'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -71,31 +73,6 @@ dependencyManagement {
     }
 }
 
-openApiGenerate {
-    inputSpec = "D:/YandexПрактикум/bank-app/openapi/merged.yaml"
-    outputDir = "$buildDir/generated"
-    generatorName = "spring"
-    apiPackage = "yandex.workshop.account.api.accounts"
-    modelPackage = "yandex.workshop.account.api.accounts.model"
-    configOptions.set([
-            interfaceOnly       : "true",
-            useSpringBoot3      : "true",
-            jakartaAnnotations  : "true",
-            openApiNullable     : "false",
-            dateLibrary         : "java8",
-            serializationLibrary: "jackson",
-            swaggerAnnotations: "false"
-    ])
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir "$buildDir/generated/src/main/java"
-        }
-    }
-}
-
 contracts {
 
     contracts {
@@ -106,10 +83,6 @@ contracts {
     testFramework = TestFramework.JUNIT5
     failOnNoContracts = false
 
-}
-
-tasks.compileJava {
-    dependsOn tasks.openApiGenerate
 }
 
 

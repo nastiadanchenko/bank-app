@@ -1,6 +1,7 @@
 package yandex.workshop.accountsservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -19,14 +21,14 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import yandex.workshop.account.api.accounts.model.CashRequest;
-import yandex.workshop.account.api.accounts.model.NotificationRequest;
-import yandex.workshop.account.api.accounts.model.TransferRequest;
-import yandex.workshop.account.api.accounts.model.UpdateAccountRequest;
 import yandex.workshop.accountsservice.entity.Account;
 import yandex.workshop.accountsservice.repository.AccountRepository;
 import yandex.workshop.accountsservice.service.AccountService;
-import yandex.workshop.accountsservice.service.NotificationProducer;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.NotificationRequest;
+import yandex.workshop.api.model.TransferRequest;
+import yandex.workshop.api.model.UpdateAccountRequest;
+import yandex.workshop.sharedkafka.NotificationProducer;
 
 @SpringBootTest(properties = {
     "spring.liquibase.enabled=true",
@@ -41,6 +43,9 @@ public class AccountServiceIT {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Value("${topic.notification}")
+    public String testTopicName;
 
     @MockitoBean
     private NotificationProducer notificationProducer;
@@ -102,7 +107,7 @@ public class AccountServiceIT {
         assertThat(updated.getBirthDate()).isEqualTo(LocalDate.of(1985, 5, 5));
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notificationProducer).send(cap.capture());
+        verify(notificationProducer).send(cap.capture(),  eq(testTopicName));
         assertThat(cap.getValue().getMessage()).contains("Account updated for user");
     }
 
@@ -154,7 +159,6 @@ public class AccountServiceIT {
             keycloakId
         ));
 
-        // PUT (add funds)
         CashRequest putReq = new CashRequest();
         putReq.setAccountId(keycloakId.toString());
         putReq.setAction("PUT");
@@ -164,7 +168,7 @@ public class AccountServiceIT {
         var accAfterPut = accountRepository.findById(account.getId()).orElseThrow();
         assertThat(accAfterPut.getBalance()).isEqualByComparingTo(new BigDecimal("70.00"));
 
-        // GET (withdraw funds)
+
         CashRequest getReq = new CashRequest();
         getReq.setAccountId(keycloakId.toString());
         getReq.setAction("GET");

@@ -2,7 +2,7 @@ package yandex.workshop.accountsservice;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import yandex.workshop.account.api.accounts.model.AccountResponse;
+import yandex.workshop.api.model.AccountResponse;
 import yandex.workshop.accountsservice.entity.Account;
 
 public class TestData {

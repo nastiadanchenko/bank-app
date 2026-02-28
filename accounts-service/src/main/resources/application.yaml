@@ -53,7 +53,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       client-id: "5L6g3nShT-eMCtK--X86sw"
       properties:
-        spring.json.type.mapping: notificationRequest:yandex.workshop.account.api.accounts.model.NotificationRequest
+        spring.json.type.mapping: notificationRequest:yandex.workshop.api.model.NotificationRequest
 
 server:
   port: ${SERVER_PORT:8081}
@@ -70,3 +70,6 @@ logging:
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     liquibase: debug
+
+topic:
+  notification: notifications

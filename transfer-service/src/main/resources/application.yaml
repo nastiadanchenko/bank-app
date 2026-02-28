@@ -28,7 +28,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       client-id: "5L6g3nShT-eMCtK--X86sw"
       properties:
-        spring.json.type.mapping: notificationRequest:yandex.workshop.transfer_service.api.accounts.model.NotificationRequest
+        spring.json.type.mapping: notificationRequest:yandex.workshop.api.model.NotificationRequest
 
 topic:
   notification: notifications

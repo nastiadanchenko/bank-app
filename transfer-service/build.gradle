@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.10'
     id 'io.spring.dependency-management' version '1.1.7'
-    id "org.openapi.generator" version "7.6.0"
 }
 
 group = 'yandex.workshop'
@@ -26,6 +25,9 @@ configurations {
 }
 
 dependencies {
+    implementation project(":api-contract")
+    implementation project(":shared-kafka")
+
     implementation 'org.springframework.kafka:spring-kafka'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -49,33 +51,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
 }
-
-
-openApiGenerate {
-    inputSpec = "D:/YandexПрактикум/bank-app/openapi/merged.yaml"
-    outputDir = "$buildDir/generated"
-    generatorName = "java"
-    modelPackage = "yandex.workshop.transfer-service.api.accounts.model"
-    configOptions.set([
-            interfaceOnly: "true",
-            library        : "webclient",
-            useJakartaEe   : "true",
-            openApiNullable: "false"
-    ])
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir "$buildDir/generated/src/main/java"
-        }
-    }
-}
-
-tasks.compileJava {
-    dependsOn tasks.openApiGenerate
-}
-
 
 tasks.named('test') {
     useJUnitPlatform()

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import yandex.workshop.transfer_service.api.accounts.model.TransferRequest;
+import yandex.workshop.api.model.TransferRequest;
 import yandex.workshop.transferservice.service.TransferService;
 
 @RestController

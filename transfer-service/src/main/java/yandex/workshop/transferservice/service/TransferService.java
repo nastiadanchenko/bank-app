@@ -7,8 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-import yandex.workshop.transfer_service.api.accounts.model.NotificationRequest;
-import yandex.workshop.transfer_service.api.accounts.model.TransferRequest;
+import yandex.workshop.api.model.NotificationRequest;
+import yandex.workshop.api.model.TransferRequest;
+import yandex.workshop.sharedkafka.NotificationProducer;
 import yandex.workshop.transferservice.client.AccountsClient;
 
 @Slf4j
@@ -22,6 +23,9 @@ public class TransferService {
 
     @Value("${spring.application.name}")
     private String serviceName;
+
+    @Value("${topic.notification}")
+    private String topicName;
 
     public String submit(TransferRequest request, JwtAuthenticationToken authentication) {
         String username = authentication.getToken().getClaimAsString("preferred_username");
@@ -57,6 +61,6 @@ public class TransferService {
             new NotificationRequest()
                 .serviceName(serviceName)
                 .message(message)
-                .timestamp(Instant.now()));
+                .timestamp(Instant.now()), topicName);
     }
 }

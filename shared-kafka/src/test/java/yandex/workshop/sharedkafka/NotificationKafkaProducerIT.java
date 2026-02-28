@@ -1,4 +1,4 @@
-package yandex.workshop.transferservice;
+package yandex.workshop.sharedkafka;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -7,10 +7,10 @@ import java.util.Map;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -19,18 +19,17 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
-import yandex.workshop.transfer_service.api.accounts.model.NotificationRequest;
-import yandex.workshop.transferservice.service.NotificationProducer;
-
+import yandex.workshop.api.model.NotificationRequest;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(properties = {
+    "spring.jpa.hibernate.ddl-auto=none"
+})
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 public class NotificationKafkaProducerIT {
 
-    @Value("${topic.notification}")
-    public String testTopicName;
+    public String testTopicName = "test-topic";
 
     @Autowired
     private NotificationProducer notificationProducer;
@@ -68,30 +67,30 @@ public class NotificationKafkaProducerIT {
         NotificationRequest request =
             new NotificationRequest();
 
-        request.setServiceName("transfer-service");
+        request.setServiceName("test-service");
         request.setUserId("user-1");
-        request.setMessage("Transfer money from account A to account B");
+        request.setMessage("Account created");
         request.setTimestamp(System.currentTimeMillis());
 
-        notificationProducer.send(request);
+        notificationProducer.send(request, testTopicName).join();
 
-        ConsumerRecords<String, NotificationRequest> records =
-            consumer.poll(Duration.ofSeconds(5));
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(10))
+            .untilAsserted(() -> {
 
-        assertThat(records.count())
-            .isGreaterThan(0);
+                ConsumerRecords<String, NotificationRequest> records =
+                    consumer.poll(Duration.ofMillis(500));
 
-        NotificationRequest actual =
-            records.iterator().next().value();
+                assertThat(records.count()).isGreaterThan(0);
 
-        assertThat(actual.getUserId())
-            .isEqualTo("user-1");
+                NotificationRequest actual =
+                    records.iterator().next().value();
 
-        assertThat(actual.getMessage())
-            .isEqualTo("Transfer money from account A to account B");
+                assertThat(actual.getUserId()).isEqualTo("user-1");
+                assertThat(actual.getMessage()).isEqualTo("Account created");
+                assertThat(actual.getServiceName()).isEqualTo("test-service");
+            });
 
-        assertThat(actual.getServiceName())
-            .isEqualTo("transfer-service");
 
     }
 

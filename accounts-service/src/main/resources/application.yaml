@@ -1,13 +1,6 @@
 spring:
   application:
     name: accounts-service
-  cloud:
-    config:
-      enabled: false
-    consul:
-      enabled: false
-    discovery:
-      enabled: false
 
   security:
     oauth2:
@@ -50,9 +43,17 @@ spring:
           default_schema: public
           ddl-auto: update
 
-bank:
-  notification-service:
-    base-url: ${NOTIFICATION_SERVICE_URl:http://localhost:8086}
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
+    admin:
+      client-id: "5L6g3nShT-eMCtK--X86sw"
+    producer:
+      bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      client-id: "5L6g3nShT-eMCtK--X86sw"
+      properties:
+        spring.json.type.mapping: notificationRequest:yandex.workshop.api.model.NotificationRequest
 
 server:
   port: ${SERVER_PORT:8081}
@@ -69,3 +70,6 @@ logging:
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     liquibase: debug
+
+topic:
+  notification: notifications

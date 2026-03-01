@@ -5,14 +5,6 @@ spring:
     activate:
       on-profile: test
 
-  cloud:
-    config:
-      enabled: false
-    consul:
-      enabled: false
-    discovery:
-      enabled: false
-
   security:
     oauth2:
       resource-server:
@@ -29,6 +21,11 @@ spring:
           keycloak:
             issuer-uri: http://localhost:8085/realms/bank-realm
 
+  spring:
+    kafka:
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
@@ -59,6 +56,9 @@ bank:
 
 server:
   port: 8081
+
+topic:
+  notification: notifications
 
 logging:
   level:

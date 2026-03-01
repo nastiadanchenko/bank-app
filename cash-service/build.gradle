@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.10'
     id 'io.spring.dependency-management' version '1.1.7'
-    id "org.openapi.generator" version "7.6.0"
 }
 
 
@@ -27,6 +26,11 @@ repositories {
 }
 
 dependencies {
+    implementation project(":api-contract")
+    implementation project(":shared-kafka")
+
+    implementation 'org.springframework.kafka:spring-kafka'
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
@@ -39,36 +43,16 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:kafka'
+    testImplementation 'org.awaitility:awaitility'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
 
-
-openApiGenerate {
-    inputSpec = "D:/YandexПрактикум/bank-app/openapi/merged.yaml"
-    outputDir = "$buildDir/generated"
-    generatorName = "java"
-    modelPackage = "yandex.workshop.cashservice.api.accounts.model"
-    configOptions.set([
-            interfaceOnly: "true",
-            library        : "webclient",
-            useJakartaEe   : "true",
-            openApiNullable: "false"
-    ])
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir "$buildDir/generated/src/main/java"
-        }
-    }
-}
-
-tasks.compileJava {
-    dependsOn tasks.openApiGenerate
-}
 
 tasks.named('test') {
     useJUnitPlatform()

@@ -12,5 +12,4 @@ data:
   DATABASE_USERNAME: {{ .Values.env.DATABASE_USERNAME | quote }}
   KEYCLOAK_OAUTH2_URL: {{ .Values.env.KEYCLOAK_OAUTH2_URL | quote }}
   ACCOUNT_SERVICE_OAUTH2_CLIENT_ID: {{ .Values.env.ACCOUNT_SERVICE_OAUTH2_CLIENT_ID | quote }}
-{{/*  SERVER_PORT: {{ .Values.service.port | quote }}*/}}
-  NOTIFICATION_SERVICE_URL: {{ .Values.env.NOTIFICATION_SERVICE_URl | quote }}
+  BOOTSTRAP_SERVERS: {{ .Values.env.BOOTSTRAP_SERVERS | quote }}

@@ -1,15 +1,16 @@
 package yandex.workshop.transferservice.service;
 
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-import yandex.workshop.transfer_service.api.accounts.model.NotificationRequest;
-import yandex.workshop.transfer_service.api.accounts.model.TransferRequest;
+import yandex.workshop.api.model.NotificationRequest;
+import yandex.workshop.api.model.TransferRequest;
+import yandex.workshop.sharedkafka.NotificationProducer;
 import yandex.workshop.transferservice.client.AccountsClient;
-import yandex.workshop.transferservice.client.NotificationClient;
 
 @Slf4j
 @Service
@@ -18,10 +19,13 @@ public class TransferService {
 
     private final AccountsClient accountsClient;
 
-    private final NotificationClient notificationClient;
+    private final NotificationProducer notificationProducer;
 
     @Value("${spring.application.name}")
     private String serviceName;
+
+    @Value("${topic.notification}")
+    private String topicName;
 
     public String submit(TransferRequest request, JwtAuthenticationToken authentication) {
         String username = authentication.getToken().getClaimAsString("preferred_username");
@@ -53,9 +57,10 @@ public class TransferService {
     }
 
     private void sendNotification(String message) {
-        notificationClient.notify(
+        notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
-                .message(message));
+                .message(message)
+                .timestamp(Instant.now()), topicName);
     }
 }

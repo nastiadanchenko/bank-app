@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(properties = "spring.cloud.config.enabled=false")
+@SpringBootTest()
 @ActiveProfiles("test")
 class AccountsServiceApplicationTests {
 

@@ -3,6 +3,7 @@ package yandex.workshop.accountsservice.controller;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.api.ApiApi;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,13 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import yandex.workshop.account.api.accounts.ApiApi;
-import yandex.workshop.account.api.accounts.model.AccountOwnerResponse;
-import yandex.workshop.account.api.accounts.model.AccountResponse;
-import yandex.workshop.account.api.accounts.model.CashRequest;
-import yandex.workshop.account.api.accounts.model.TransferRequest;
-import yandex.workshop.account.api.accounts.model.UpdateAccountRequest;
 import yandex.workshop.accountsservice.service.AccountService;
+import yandex.workshop.api.model.AccountOwnerResponse;
+import yandex.workshop.api.model.AccountResponse;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.TransferRequest;
+import yandex.workshop.api.model.UpdateAccountRequest;
 
 @Slf4j
 @RestController

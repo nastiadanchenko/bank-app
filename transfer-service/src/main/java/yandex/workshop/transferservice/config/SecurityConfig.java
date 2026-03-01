@@ -76,9 +76,6 @@ public class SecurityConfig {
         if (roles.contains("TRANSFER_WRITE")) {
             authorities.add(new SimpleGrantedAuthority("transfer.write"));
         }
-        if(roles.contains("NOTIFICATIONS")){
-            authorities.add(new SimpleGrantedAuthority("notifications"));
-        }
 
         return authorities;
     }

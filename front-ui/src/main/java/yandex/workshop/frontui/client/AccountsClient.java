@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import yandex.workshop.frontui.api.accounts.model.UpdateAccountRequest;
+import yandex.workshop.api.model.UpdateAccountRequest;
 import yandex.workshop.frontui.dto.AccountDto;
 
 @Component

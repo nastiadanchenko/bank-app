@@ -10,12 +10,9 @@ env:
   DATABASE_PORT: 5432
   DATABASE_NAME: accounts
   DATABASE_USERNAME: postgres
-#  DATABASE_PASSWORD: password
   KEYCLOAK_OAUTH2_URL: http://bank-app-keycloak.default.svc.cluster.local:8085/realms/bank-realm
   ACCOUNT_SERVICE_OAUTH2_CLIENT_ID: account-service
-#  ACCOUNT_SERVICE_OAUTH2_CLIENT_SECRET: fpbcLLRoXyEJolIXEfqMiRMsevqXZnXG
-#  SERVER_PORT: {{ .Values.service.port }}
-  NOTIFICATION_SERVICE_URl: http://bank-app-notifications.default.svc.cluster.local:8086
+  BOOTSTRAP_SERVERS: bank-app-kafka-broker:9092
 
 secrets:
   DATABASE_PASSWORD: ""
@@ -55,16 +52,24 @@ ingress:
           pathType: Prefix
   tls: []
 
-resources: {}
+resources:
+  limits:
+      cpu: 500m
+      memory: 768Mi
+  requests:
+      cpu: 250m
+      memory: 512Mi
 
 livenessProbe:
   httpGet:
     path: /actuator/health
     port: http
+    initialDelaySeconds: 120
 readinessProbe:
   httpGet:
     path: /actuator/health
     port: http
+    initialDelaySeconds: 120
 
 autoscaling:
   enabled: false

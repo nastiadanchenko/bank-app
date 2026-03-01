@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.OperationResponse;
+import yandex.workshop.api.model.TransferRequest;
+import yandex.workshop.api.model.UpdateAccountRequest;
 import yandex.workshop.frontui.client.AccountsClient;
 import yandex.workshop.frontui.client.CashClient;
 import yandex.workshop.frontui.client.TransferClient;
-import yandex.workshop.frontui.api.accounts.model.CashRequest;
-import yandex.workshop.frontui.api.accounts.model.OperationResponse;
-import yandex.workshop.frontui.api.accounts.model.TransferRequest;
-import yandex.workshop.frontui.api.accounts.model.UpdateAccountRequest;
 
 @Controller
 @RequiredArgsConstructor

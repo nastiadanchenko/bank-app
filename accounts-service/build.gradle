@@ -4,7 +4,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.10'
     id 'io.spring.dependency-management' version '1.1.7'
-    id "org.openapi.generator" version "7.6.0"
     id "org.springframework.cloud.contract" version "4.3.0"
     id "maven-publish"
 
@@ -30,8 +29,12 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
+    implementation project(":api-contract")
+    implementation project(":shared-kafka")
+
+    implementation 'org.springframework.kafka:spring-kafka'
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
@@ -53,42 +56,20 @@ dependencies {
 
     testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-verifier'
 
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:kafka'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.awaitility:awaitility'
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:4.3.0"
-    }
-}
-
-openApiGenerate {
-    inputSpec = "D:/YandexПрактикум/bank-app/openapi/merged.yaml"
-    outputDir = "$buildDir/generated"
-    generatorName = "spring"
-    apiPackage = "yandex.workshop.account.api.accounts"
-    modelPackage = "yandex.workshop.account.api.accounts.model"
-    configOptions.set([
-            interfaceOnly       : "true",
-            useSpringBoot3      : "true",
-            jakartaAnnotations  : "true",
-            openApiNullable     : "false",
-            dateLibrary         : "java8",
-            serializationLibrary: "jackson",
-            swaggerAnnotations: "false"
-    ])
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir "$buildDir/generated/src/main/java"
-        }
     }
 }
 
@@ -102,10 +83,6 @@ contracts {
     testFramework = TestFramework.JUNIT5
     failOnNoContracts = false
 
-}
-
-tasks.compileJava {
-    dependsOn tasks.openApiGenerate
 }
 
 

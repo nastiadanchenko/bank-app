@@ -4,13 +4,7 @@ spring:
   config:
     activate:
       on-profile: test
-  cloud:
-    config:
-      enabled: false
-    consul:
-      enabled: false
-    discovery:
-      enabled: false
+
   security:
     oauth2:
       resource-server:
@@ -28,11 +22,25 @@ spring:
           keycloak:
             issuer-uri: http://localhost:8085/realms/bank-realm
 
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
+    admin:
+      client-id: "5L6g3nShT-eMCtK--X86sw"
+    producer:
+      bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      client-id: "5L6g3nShT-eMCtK--X86sw"
+      properties:
+        spring.json.type.mapping: notificationRequest:yandex.workshop.api.model.NotificationRequest
+
+topic:
+  notification: notifications
+
 server:
   port: 8083
 
 bank:
   accounts-service:
     base-url: http://localhost:8081
-  notifications-service:
-    base-url: http://localhost:8086
+

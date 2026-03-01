@@ -55,18 +55,4 @@ public class WebClientConfig {
             .build();
     }
 
-    @Bean
-    public WebClient notificationWebClient( WebClient.Builder builder,
-        OAuth2AuthorizedClientManager authorizedClientManager,
-        @Value("${bank.notifications-service.base-url}") String notificationServiceBaseUrl
-    ) {
-        ServletOAuth2AuthorizedClientExchangeFilterFunction oauth2 =
-            new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        oauth2.setDefaultClientRegistrationId("cash-service");
-
-        return builder
-            .baseUrl(notificationServiceBaseUrl)
-            .apply(oauth2.oauth2Configuration())
-            .build();
-    }
 }

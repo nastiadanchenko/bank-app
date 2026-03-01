@@ -1,6 +1,8 @@
 rootProject.name = 'bank-app'
 
 include(
+        'api-contract',
+        'shared-kafka',
         'front-ui',
         'accounts-service',
         'cash-service',

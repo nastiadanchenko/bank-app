@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import yandex.workshop.transfer_service.api.accounts.model.AccountOwnerResponse;
-import yandex.workshop.transfer_service.api.accounts.model.TransferRequest;
+import yandex.workshop.api.model.AccountOwnerResponse;
+import yandex.workshop.api.model.TransferRequest;
 
 @Component
 public class AccountsClient {

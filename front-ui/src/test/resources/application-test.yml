@@ -33,6 +33,5 @@ spring:
 server:
   port: 8080
 
-
 gateway:
-  url: http://localhost:8082
+  url: ${GATEWAY_URL:http://localhost:8082}

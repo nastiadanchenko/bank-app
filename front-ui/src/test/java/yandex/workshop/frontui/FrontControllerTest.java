@@ -1,11 +1,15 @@
 package yandex.workshop.frontui;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,16 +22,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import yandex.workshop.frontui.api.accounts.model.CashRequest;
-import yandex.workshop.frontui.api.accounts.model.OperationResponse;
-import yandex.workshop.frontui.api.accounts.model.TransferRequest;
-import yandex.workshop.frontui.api.accounts.model.UpdateAccountRequest;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.OperationResponse;
+import yandex.workshop.api.model.TransferRequest;
+import yandex.workshop.api.model.UpdateAccountRequest;
 import yandex.workshop.frontui.client.AccountsClient;
 import yandex.workshop.frontui.client.CashClient;
 import yandex.workshop.frontui.client.TransferClient;
@@ -37,7 +41,7 @@ import yandex.workshop.frontui.dto.AccountDto;
 @WebMvcTest(FrontController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(properties = "spring.cloud.config.enabled=false")
+@TestPropertySource()
 class FrontControllerTest {
 
     @Autowired

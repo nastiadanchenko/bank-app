@@ -9,8 +9,8 @@
 * Spring Security
 * OAuth2 / OpenID Connect
 ### Безопасность
-* Keycloak — Identity Provider
-* JWT — access tokens
+* Keycloak - Identity Provider
+* JWT - access tokens
 * OAuth2 Client / Resource Server
 ### Хранение данных
 * PostgreSQL 16
@@ -21,6 +21,7 @@
 * Helm
 * NGINX Ingress Controller
 * Gradle (multi-module project)
+* Apache Kafka - брокер сообщений взаимодействия микросервисов
 ### Тестирование
 * JUnit 5
 * Spring Boot Test
@@ -47,8 +48,49 @@
 
 Проект является многомодульным Gradle-проектом.
 
-## Структура проекта
+---
 
+## Асинхронное взаимодействие через Apache Kafka
+
+В системе реализовано асинхронное взаимодействие микросервисов с использованием Apache Kafka.
+
+Apache Kafka используется как брокер сообщений для передачи событий нотификаций между сервисами.
+
+### Kafka Topics
+
+Используется Kafka topic:
+
+* `notifications` - для передачи событий нотификаций
+
+Формат сообщения:
+
+```json
+{
+"serviceName": "account-service",
+"userId": "123",
+"message": "Account successfully updated",
+"timestamp": "2025-06-16T12:00:00"
+}
+```
+**Producer сервисы:**
+
+* accounts-service
+* cash-service
+* transfer-service
+
+**Consumer сервис:**
+
+* notifications-service
+
+**Схема взаимодействия:**
+
+```
+Accounts Service ─┐
+Cash Service      ├──> Kafka ───> Notifications Service
+Transfer Service ─┘
+```
+
+## Структура проекта
 ```
 bank-app/
 |
@@ -63,8 +105,6 @@ bank-app/
 |       ├── templates/
 |       └── values.yaml
 |
-├── config-server/
-├── api-gateway/
 ├── accounts-service/
 ├── cash-service/
 ├── notifications-service/
@@ -92,7 +132,7 @@ bank-app/
 * CRUD операций над счетами
 * работа с PostgreSQL
 * Liquibase для миграций
-
+* отправка событий уведомлений в Apache Kafka
 ---
 
 ### Cash Service (`cash-service`)
@@ -105,6 +145,7 @@ bank-app/
 
 * бизнес-логика денежных операций
 * вызовы `accounts-service`
+* отправка событий уведомлений в Apache Kafka
 
 ---
 
@@ -112,12 +153,17 @@ bank-app/
 
 **Назначение:**
 
-* отправка уведомлений пользователям
+* обработка событий уведомлений
 
 **Функциональность:**
 
-* REST API для приёма событий
-* взаимодействие с другими сервисами
+* чтение событий уведомлений из Apache Kafka
+* логирование событий
+
+
+**Kafka Consumer:**
+
+Notifications Service подписан на Kafka topic: `notifications`
 
 ### Transfer Service (`transfer-service`)
 
@@ -129,6 +175,7 @@ bank-app/
 
 * бизнес-логика денежных операций
 * вызовы `accounts-service`
+* отправка событий уведомлений в Apache Kafka
 
 ### Front UI (front-ui)
 

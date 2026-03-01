@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import yandex.workshop.frontui.api.accounts.model.CashRequest;
-import yandex.workshop.frontui.api.accounts.model.OperationResponse;
+import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.OperationResponse;
 
 @Component
 @RequiredArgsConstructor

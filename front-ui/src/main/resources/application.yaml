@@ -26,6 +26,17 @@ spring:
   thymeleaf:
     cache: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0   # для демо обязательно 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
 
 server:
   port: ${SERVER_PORT:8080}

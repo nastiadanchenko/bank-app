@@ -63,6 +63,12 @@ management:
     web:
       exposure:
         include: "*"
+  tracing:
+    sampling:
+      probability: 1
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL:http://localhost:9411//api/v2/spans}
 
 logging:
   level:

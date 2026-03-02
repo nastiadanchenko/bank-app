@@ -2,10 +2,14 @@ package yandex.workshop.cashservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.util.ReflectionTestUtils;
 import yandex.workshop.api.model.CashRequest;
 import yandex.workshop.api.model.NotificationRequest;
+import yandex.workshop.api.model.OperationResponse;
 import yandex.workshop.cashservice.client.AccountsClient;
 import yandex.workshop.cashservice.service.CashService;
 import yandex.workshop.sharedkafka.NotificationProducer;
@@ -29,6 +34,11 @@ public class CashServiceTest {
     @Mock
     private NotificationProducer notificationProducer;
 
+    @Mock
+    private MeterRegistry meterRegistry;
+    @Mock
+    private Counter counter;
+
     private CashService cashService;
 
     @Value("${topic.notification}")
@@ -36,7 +46,7 @@ public class CashServiceTest {
 
     @BeforeEach
     void setUp() {
-        cashService = new CashService(accountsClient, notificationProducer);
+        cashService = new CashService(accountsClient, notificationProducer, meterRegistry);
         ReflectionTestUtils.setField(cashService, "serviceName", "cash-service");
     }
 
@@ -47,7 +57,8 @@ public class CashServiceTest {
         req.setValue(new BigDecimal("10.00"));
         req.setAccountLogin("alice");
 
-        when(accountsClient.sendTransaction(any(CashRequest.class))).thenReturn("OK: added 10.00");
+        when(accountsClient.sendTransaction(any(CashRequest.class)))
+            .thenReturn(new OperationResponse(true, "OK: added 10.00"));
 
         String result = cashService.submit(req);
 
@@ -55,6 +66,8 @@ public class CashServiceTest {
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
         verify(notificationProducer).send(cap.capture(), eq(testTopicName));
+
+        verify(meterRegistry, never()).counter(anyString(), any(String[].class));
 
         NotificationRequest sent = cap.getValue();
         assertThat(sent).isNotNull();
@@ -73,14 +86,16 @@ public class CashServiceTest {
         req.setAccountLogin("bob");
 
         String errorMsg = "Ошибка при обращении к accounts-service: timeout";
-        when(accountsClient.sendTransaction(any(CashRequest.class))).thenReturn(errorMsg);
-
+        when(accountsClient.sendTransaction(any(CashRequest.class))).thenReturn(new OperationResponse(false, errorMsg));
+        when(meterRegistry.counter(anyString(), any(String[].class)))
+            .thenReturn(counter);
         String result = cashService.submit(req);
 
         assertThat(result).isEqualTo(errorMsg);
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
         verify(notificationProducer).send(cap.capture(), eq(testTopicName));
+        verify(counter).increment();
 
         NotificationRequest sent = cap.getValue();
         assertThat(sent.getServiceName()).isEqualTo("cash-service");

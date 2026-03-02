@@ -1,5 +1,6 @@
 package yandex.workshop.cashservice.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import yandex.workshop.api.model.CashRequest;
 import yandex.workshop.api.model.NotificationRequest;
+import yandex.workshop.api.model.OperationResponse;
 import yandex.workshop.cashservice.client.AccountsClient;
 import yandex.workshop.sharedkafka.NotificationProducer;
 
@@ -17,9 +19,9 @@ public class CashService {
 
     private final AccountsClient accountsClient;
 
-//    public final NotificationClient notificationClient;
-
     private final NotificationProducer notificationProducer;
+
+    private final MeterRegistry meterRegistry;
 
     @Value("${spring.application.name}")
     public String serviceName;
@@ -29,17 +31,29 @@ public class CashService {
 
 
     public String submit(CashRequest request) {
-
-        String result = accountsClient.sendTransaction(request);
+        OperationResponse result = accountsClient.sendTransaction(request);
 
         log.info("Операция с наличными: {}", result);
 
+        if (!result.getSuccess()) {
+            log.error("Ошибка при выполнении операции с наличными: {}", result.getMessage());
+
+            if ("GET" .equals(request.getAction())) {
+                meterRegistry.counter(
+                    "business.cash.failed",
+                    "login", request.getAccountLogin()
+                ).increment();
+            }
+
+        }
         sendNotification("Cash operation " + request.getAction() +
             " of " + request.getValue() +
-            " for " + request.getAccountLogin(), request.getAccountId()
-            );
+            " for " + request.getAccountLogin(), request.getAccountId() +
+            " result: " + result.getMessage() + " success: " + result.getSuccess()
+        );
 
-        return result;
+        return result.getMessage();
+
     }
 
 

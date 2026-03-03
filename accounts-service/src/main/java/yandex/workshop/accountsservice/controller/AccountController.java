@@ -19,6 +19,7 @@ import yandex.workshop.accountsservice.service.AccountService;
 import yandex.workshop.api.model.AccountOwnerResponse;
 import yandex.workshop.api.model.AccountResponse;
 import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.OperationResponse;
 import yandex.workshop.api.model.TransferRequest;
 import yandex.workshop.api.model.UpdateAccountRequest;
 
@@ -43,7 +44,6 @@ public class AccountController implements ApiApi {
     public AccountResponse updateAccount(Authentication authentication,
                                          @RequestBody UpdateAccountRequest dto) {
 
-//        log.debug("Authorities in PUT: {}", token.getAuthorities());
         return accountService.updateProfile(authentication, dto);
     }
 
@@ -56,24 +56,45 @@ public class AccountController implements ApiApi {
 
     @PostMapping(value = "/cash")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
-    public String cash(@RequestBody CashRequest request) {
+    public OperationResponse cash(@RequestBody CashRequest request) {
+        OperationResponse response;
         log.debug("Authorities in CASH: {}", request);
-        accountService.cash(request);
+        try {
+            accountService.cash(request);
+                response = new OperationResponse()
+                    .success(true)
+                    .message("Операция выполнена: " + request.getValue());
 
-        return "Операция выполнена: "
-            + request.getAction()
-            + " " + request.getValue();
+        } catch (RuntimeException e) {
+            log.error("Ошибка при выполнении операции с наличными: {}", e.getMessage());
+            response = new OperationResponse()
+                .success(false)
+                .message("Ошибка при выполнении операции: " + e.getMessage());
+        }
+        return response;
     }
 
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
-    public String transfer(@RequestBody TransferRequest request) {
+    public OperationResponse transfer(@RequestBody TransferRequest request) {
         log.debug("Authorities in TRANSFER: {}", request);
-        accountService.transfer(request);
-        return "Перевод выполнен: "
-            + request.getAmount()
-            + " со счёта " + request.getFromLogin()
-            + " на счёт " + request.getToLogin();
+        OperationResponse response;
+        try {
+            accountService.transfer(request);
+            response = new OperationResponse()
+                .success(true)
+                .message("Перевод выполнен: "
+                    + request.getAmount()
+                    + " со счёта " + request.getFromLogin()
+                    + " на счёт " + request.getToLogin());
+        } catch (RuntimeException e) {
+            log.error("Ошибка при выполнении перевода: {}", e.getMessage());
+            response = new OperationResponse()
+                .success(false)
+                .message("Ошибка при выполнении перевода: " + e.getMessage());
+        }
+
+        return response;
     }
 
     @GetMapping(value = "{accountLogin}/owner",

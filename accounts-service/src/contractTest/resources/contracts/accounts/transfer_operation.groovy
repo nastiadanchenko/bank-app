@@ -21,6 +21,13 @@ Contract.make {
 
     response {
         status OK()
-        body("Перевод выполнен: 100.00 со счёта ivanov123 на счёт petrov456")
+        headers {
+            contentType(applicationJson())
+        }
+        body(
+                success: true,
+                message: "Перевод выполнен: 100.00 со счёта ivanov123 на счёт petrov456",
+                data: null
+        )
     }
 }

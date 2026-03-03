@@ -90,7 +90,8 @@ public class AccountService {
             account.setBirthDate(dto.getBirthdate());
         }
 
-        sendNotification("Account updated for user: " +  account.getLogin(), account.getKeycloakId().toString());
+        sendNotification("Account updated for user: " +  account.getLogin(),
+            account.getKeycloakId().toString(), account.getLogin());
 
         return buildDto(accountRepository.save(account));
 
@@ -111,7 +112,8 @@ public class AccountService {
             account.setBirthDate(dto.getBirthdate());
         }
 
-        sendNotification("Account updated for user: " +  account.getLogin(), account.getKeycloakId().toString());
+        sendNotification("Account updated for user: " +  account.getLogin(),
+            account.getKeycloakId().toString(), account.getLogin());
 
         return buildDto(accountRepository.save(account));
 
@@ -182,13 +184,14 @@ public class AccountService {
         accountRepository.save(account);
     }
 
-    private void sendNotification(String message, String userId) {
+    private void sendNotification(String message, String userId, String login) {
         notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
                 .message(message)
                 .timestamp(Instant.now())
-                .userId(userId),
+                .userId(userId)
+                .login(login),
             topicName);
     }
 }

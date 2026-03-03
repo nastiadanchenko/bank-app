@@ -27,15 +27,16 @@ repositories {
 
 
 dependencies {
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     implementation project(":api-contract")
 
     implementation 'org.springframework.kafka:spring-kafka'
-//    implementation 'org.springframework.boot:spring-boot-starter'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
-//    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -51,35 +52,6 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
-
-//openApiGenerate {
-//    inputSpec = "D:/YandexПрактикум/bank-app/openapi/merged.yaml"
-//    outputDir = "$buildDir/generated"
-//    generatorName = "spring"
-//    apiPackage = "yandex.workshop.sharedkafka.api.accounts"
-//    modelPackage = "yandex.workshop.sharedkafka.api.accounts.model"
-//    configOptions.set([
-//            interfaceOnly       : "true",
-//            useSpringBoot3      : "true",
-//            jakartaAnnotations  : "true",
-//            openApiNullable     : "false",
-//            dateLibrary         : "java8",
-//            serializationLibrary: "jackson",
-//            swaggerAnnotations: "false"
-//    ])
-//}
-//
-//sourceSets {
-//    main {
-//        java {
-//            srcDir "$buildDir/generated/src/main/java"
-//        }
-//    }
-//}
-//
-//tasks.compileJava {
-//    dependsOn tasks.openApiGenerate
-//}
 
 tasks.named('test') {
     useJUnitPlatform()

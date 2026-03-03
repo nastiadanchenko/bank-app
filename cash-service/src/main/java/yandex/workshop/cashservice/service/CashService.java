@@ -49,7 +49,8 @@ public class CashService {
         sendNotification("Cash operation " + request.getAction() +
             " of " + request.getValue() +
             " for " + request.getAccountLogin(), request.getAccountId() +
-            " result: " + result.getMessage() + " success: " + result.getSuccess()
+            " result: " + result.getMessage() + " success: " + result.getSuccess(),
+            request.getAccountLogin()
         );
 
         return result.getMessage();
@@ -57,12 +58,13 @@ public class CashService {
     }
 
 
-    private void sendNotification(String message, String userId) {
+    private void sendNotification(String message, String userId, String login) {
         notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
                 .message(message)
                 .timestamp(Instant.now())
-                .userId(userId), topicName);
+                .userId(userId)
+                .login(login), topicName);
     }
 }

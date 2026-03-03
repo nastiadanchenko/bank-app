@@ -23,7 +23,7 @@ dependencies {
 }
 
 openApiGenerate {
-    inputSpec = "$rootDir/openapi/merged.yaml"
+    inputSpec = "$projectDir/openapi/merged.yaml"
     outputDir = "$buildDir/generated"
     generatorName = "spring"
     modelPackage = "yandex.workshop.api.model"

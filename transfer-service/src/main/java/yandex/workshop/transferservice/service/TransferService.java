@@ -45,7 +45,7 @@ public class TransferService {
             log.warn("Отказ в переводе: пользователь {} не владелец счёта {}", username, request.getFromLogin());
 
             sendNotification("Попытка несанкционированного перевода со счёта "
-                + request.getFromLogin() + " пользователем " + username);
+                + request.getFromLogin() + " пользователем " + username, request.getFromLogin());
 
             throw new AccessDeniedException(
                 "Пользователь " + username + " не является владельцем счёта " + request.getFromLogin()
@@ -67,23 +67,24 @@ public class TransferService {
 
             sendNotification("Ошибка при выполнении перевода со счёта "
                 + request.getFromLogin() + " на счёт " + request.getToLogin()
-                + " пользователем " + username + ": " + result.getMessage());
+                + " пользователем " + username + ": " + result.getMessage(), request.getFromLogin());
 
         } else {
             log.info("Перевод выполнен успешно: {}", result);
             sendNotification("Пользователь " + username + " выполнил перевод со счёта "
                 + request.getFromLogin() + " на счёт " + request.getToLogin()
-                + " на сумму " + request.getAmount());
+                + " на сумму " + request.getAmount(), request.getFromLogin());
         }
 
         return result.getMessage();
     }
 
-    private void sendNotification(String message) {
+    private void sendNotification(String message, String login) {
         notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
                 .message(message)
-                .timestamp(Instant.now()), topicName);
+                .timestamp(Instant.now())
+                .login(login), topicName);
     }
 }

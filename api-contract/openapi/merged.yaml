@@ -163,6 +163,7 @@ components:
         - userId
         - message
         - timestamp
+        - login
       properties:
         serviceName:
           type: string
@@ -174,4 +175,6 @@ components:
           type: string
         timestamp:
           type: object
+        login:
+          type: string
 

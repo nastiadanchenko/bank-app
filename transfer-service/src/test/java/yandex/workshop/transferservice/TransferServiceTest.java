@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.util.ReflectionTestUtils;
 import yandex.workshop.api.model.NotificationRequest;
+import yandex.workshop.api.model.OperationResponse;
 import yandex.workshop.api.model.TransferRequest;
 import yandex.workshop.sharedkafka.NotificationProducer;
 import yandex.workshop.transferservice.client.AccountsClient;
@@ -36,6 +38,9 @@ public class TransferServiceTest {
     @Mock
     private NotificationProducer notificationProducer;
 
+    @Mock
+    private MeterRegistry meterRegistry;
+
     private TransferService transferService;
 
     @Value("${topic.notification}")
@@ -43,7 +48,7 @@ public class TransferServiceTest {
 
     @BeforeEach
     void setUp() {
-        transferService = new TransferService(accountsClient, notificationProducer);
+        transferService = new TransferService(accountsClient, notificationProducer, meterRegistry);
         ReflectionTestUtils.setField(transferService, "serviceName", "transfer-service");
     }
 
@@ -68,15 +73,14 @@ public class TransferServiceTest {
         JwtAuthenticationToken auth = new JwtAuthenticationToken(jwt);
 
         when(accountsClient.isOwner("alice", username)).thenReturn(true);
-        when(accountsClient.transfer(req)).thenReturn("Перевод выполнен");
-
+        when(accountsClient.transfer(req)).thenReturn(new OperationResponse(true, "Перевод выполнен"));
 
         String result = transferService.submit(req, auth);
-
 
         assertThat(result).isEqualTo("Перевод выполнен");
         verify(accountsClient).isOwner("alice", username);
         verify(accountsClient).transfer(req);
+        verify(meterRegistry, never()).counter(any(), any(String[].class));
 
         ArgumentCaptor<NotificationRequest> cap = ArgumentCaptor.forClass(NotificationRequest.class);
         verify(notificationProducer).send(cap.capture(),  eq(testTopicName));

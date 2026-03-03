@@ -3,8 +3,8 @@ package yandex.workshop.transferservice.client;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import yandex.workshop.api.model.AccountOwnerResponse;
+import yandex.workshop.api.model.OperationResponse;
 import yandex.workshop.api.model.TransferRequest;
 
 @Component
@@ -16,14 +16,13 @@ public class AccountsClient {
         this.accountsWebClient = accountsWebClient;
     }
 
-    public String transfer(TransferRequest request) {
+    public OperationResponse transfer(TransferRequest request) {
         return accountsWebClient
             .post()
             .uri("/accounts/transfer")
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(String.class)
-            .onErrorResume(throwable -> Mono.just("Ошибка при обращении к accounts-service: " + throwable.getMessage()))
+            .bodyToMono(OperationResponse.class)
             .block();
     }
 

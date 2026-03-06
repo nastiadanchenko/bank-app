@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "accounts.fullname" . }}-monitor
+  labels:
+    release: kube-prometheus-stack
+    {{- include "accounts.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: accounts-service
+      {{- include "accounts.selectorLabels" . | nindent 4 }}
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s

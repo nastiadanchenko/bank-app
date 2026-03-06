@@ -57,6 +57,7 @@ env:
   BANK_ACCOUNTS_SERVICE_BASE_URL: http://bank-app-accounts.default.svc.cluster.local:8081
   LOGGING_LEVEL_ROOT: INFO
   BOOTSTRAP_SERVERS: bank-app-kafka-broker:9092
+  ZIPKIN_URL: http://bank-app-zipkin:9411/api/v2/spans
 
 secrets:
   SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ""

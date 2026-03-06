@@ -6,6 +6,14 @@ version: 0.1.0
 appVersion: "1.16.0"
 
 dependencies:
+  - name: kube-prometheus-stack
+    version: "82.4.3"
+    repository: https://prometheus-community.github.io/helm-charts
+
+  - name: zipkin
+    version: 0.4.0
+    repository: https://zipkin.io/zipkin-helm
+
   - name: kafka
     version: "18.0.0"
     repository: "https://helm-charts.itboon.top/kafka/"

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  spring-boot.json: |-
+{{ .Files.Get "dashboards/spring-boot.json" | indent 4 }}

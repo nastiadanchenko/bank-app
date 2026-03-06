@@ -10,6 +10,51 @@ global:
     postgresqlPassword: password
     postgresqlUsername: postgres
 
+kube-prometheus-stack:
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.local
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: {}
+      ruleSelector: {}
+
+  prometheusOperator:
+    enabled: true
+
+zipkin:
+  service:
+    type: NodePort # По умолчанию ClusterIp
+  ingress:
+    enabled: true # По умолчанию выключен
+    host: "zipkin.local"
+    selfTracing:
+      enabled: true  # По умолчанию выключено
+  # Переопределяем использование ресурсов
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  # Включаем автоскейлинг
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+
 kafka:
   ui:
     enabled: true
@@ -51,25 +96,34 @@ keycloak:
     type: ClusterIP
     ports:
       http: 8085
-  # admin credentials
+  postgresql:
+    enabled: false
+  externalDatabase:
+    host: bank-app-postgresql.default.svc.cluster.local
+    port: 5432
+    database: keycloak
+    user: postgres
+    existingSecret: keycloak-db-secret
+    existingSecretPasswordKey: password
+
   secret:
     create: true
     username: admin
     password: admin
-  extraEnv: |
-    - name: KC_DB
-      value: postgres
-    - name: KC_DB_URL
-      value: jdbc:postgresql://bank-app-postgresql:5432/keycloak
-    - name: KC_DB_USERNAME
-      value: postgres
-    - name: KC_DB_PASSWORD
-      value: password
-    - name: KC_HOSTNAME
-      value: keycloak.local
-    # realm import
-    - name: KEYCLOAK_IMPORT
-      value: /opt/keycloak/data/import/bank-realm.json
+#  extraEnv: |
+#    - name: KC_DB
+#      value: postgres
+#    - name: KC_DB_URL
+#      value: jdbc:postgresql://bank-app-postgresql:5432/keycloak
+#    - name: KC_DB_USERNAME
+#      value: postgres
+#    - name: KC_DB_PASSWORD
+#      value: password
+#    - name: KC_HOSTNAME
+#      value: keycloak.local
+#    # realm import
+#    - name: KEYCLOAK_IMPORT
+#      value: /opt/keycloak/data/import/bank-realm.json
 
   extraVolumes: |
     - name: realm-config

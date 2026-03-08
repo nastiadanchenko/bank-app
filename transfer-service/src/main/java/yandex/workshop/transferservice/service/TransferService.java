@@ -34,15 +34,22 @@ public class TransferService {
     public String submit(TransferRequest request, JwtAuthenticationToken authentication) {
         String username = authentication.getToken().getClaimAsString("preferred_username");
 
-        log.info("Запрос перевода: user={}, from={}, to={}, amount={}",
-            username, request.getFromLogin(), request.getToLogin(), request.getAmount());
+        log.info("Transfer started user={} from={} to={} amount={}",
+            username,
+            request.getFromLogin(),
+            request.getToLogin(),
+            request.getAmount());
 
         boolean owner = accountsClient.isOwner(request.getFromLogin(), username);
-        log.debug("Проверка владельца счёта: user={}, from={}, isOwner={}",
-            username, request.getFromLogin(), owner);
+        log.debug("Ownership check user={} account={} result={}",
+            username,
+            request.getFromLogin(),
+            owner);
 
         if (!owner) {
-            log.warn("Отказ в переводе: пользователь {} не владелец счёта {}", username, request.getFromLogin());
+            log.warn("Transfer rejected: unauthorized access user={} account={}",
+                username,
+                request.getFromLogin());
 
             sendNotification("Попытка несанкционированного перевода со счёта "
                 + request.getFromLogin() + " пользователем " + username, request.getFromLogin());
@@ -53,11 +60,31 @@ public class TransferService {
 
         }
 
-        OperationResponse result = accountsClient.transfer(request);
+        OperationResponse result;
+        try {
+            log.debug("Calling accounts-service transfer from={} to={} amount={}",
+                request.getFromLogin(),
+                request.getToLogin(),
+                request.getAmount());
+            result = accountsClient.transfer(request);
+
+        } catch (Exception ex) {
+            log.error("Transfer failed due to service error from={} to={} amount={} error={}",
+                request.getFromLogin(),
+                request.getToLogin(),
+                request.getAmount(),
+                ex.getMessage(),
+                ex);
+            throw ex;
+        }
 
         if (!result.getSuccess()) {
-            log.warn("Ошибка при выполнении перевода: user={}, from={}, to={}, amount={}, error={}",
-                username, request.getFromLogin(), request.getToLogin(), request.getAmount(), result.getMessage());
+            log.warn("Transfer business failure user={} from={} to={} amount={} reason={}",
+                username,
+                request.getFromLogin(),
+                request.getToLogin(),
+                request.getAmount(),
+                result.getMessage());
 
             meterRegistry.counter(
                 "business.transfer.failed",
@@ -70,7 +97,11 @@ public class TransferService {
                 + " пользователем " + username + ": " + result.getMessage(), request.getFromLogin());
 
         } else {
-            log.info("Перевод выполнен успешно: {}", result);
+            log.info("Transfer completed user={} from={} to={} amount={}",
+                username,
+                request.getFromLogin(),
+                request.getToLogin(),
+                request.getAmount());
             sendNotification("Пользователь " + username + " выполнил перевод со счёта "
                 + request.getFromLogin() + " на счёт " + request.getToLogin()
                 + " на сумму " + request.getAmount(), request.getFromLogin());
@@ -80,6 +111,10 @@ public class TransferService {
     }
 
     private void sendNotification(String message, String login) {
+        log.debug("Sending notification login={} topic={} message={}",
+            login,
+            topicName,
+            message);
         notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)

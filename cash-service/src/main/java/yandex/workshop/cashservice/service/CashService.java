@@ -31,12 +31,30 @@ public class CashService {
 
 
     public String submit(CashRequest request) {
-        OperationResponse result = accountsClient.sendTransaction(request);
-
-        log.info("Операция с наличными: {}", result);
+        log.info("Cash operation started action={} login={} amount={}",
+            request.getAction(),
+            request.getAccountLogin(),
+            request.getValue());
+        OperationResponse result;
+        try {
+            result = accountsClient.sendTransaction(request);
+        } catch (RuntimeException e) {
+            log.error("Cash operation failed due to service error action={} login={} amount={} error={}",
+                request.getAction(),
+                request.getAccountLogin(),
+                request.getValue(),
+                e.getMessage(),
+                e);
+            throw e;
+        }
+        log.debug("Accounts service response success={} message={}",
+            result.getSuccess(),
+            result.getMessage());
 
         if (!result.getSuccess()) {
-            log.error("Ошибка при выполнении операции с наличными: {}", result.getMessage());
+            log.debug("Accounts service response success={} message={}",
+                result.getSuccess(),
+                result.getMessage());
 
             if ("GET" .equals(request.getAction())) {
                 meterRegistry.counter(
@@ -44,21 +62,28 @@ public class CashService {
                     "login", request.getAccountLogin()
                 ).increment();
             }
-
+        } else {
+            log.info("Cash operation completed action={} login={} amount={}",
+                request.getAction(),
+                request.getAccountLogin(),
+                request.getValue());
         }
+
         sendNotification("Cash operation " + request.getAction() +
-            " of " + request.getValue() +
-            " for " + request.getAccountLogin(), request.getAccountId() +
-            " result: " + result.getMessage() + " success: " + result.getSuccess(),
+                " of " + request.getValue() +
+                " for " + request.getAccountLogin(), request.getAccountId() +
+                " result: " + result.getMessage() + " success: " + result.getSuccess(),
             request.getAccountLogin()
         );
 
         return result.getMessage();
-
     }
 
-
     private void sendNotification(String message, String userId, String login) {
+        log.debug("Sending notification user={} topic={} message={}",
+            login,
+            topicName,
+            message);
         notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
@@ -66,5 +91,6 @@ public class CashService {
                 .timestamp(Instant.now())
                 .userId(userId)
                 .login(login), topicName);
+
     }
 }

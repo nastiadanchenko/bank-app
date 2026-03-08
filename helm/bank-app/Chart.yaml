@@ -6,29 +6,54 @@ version: 0.1.0
 appVersion: "1.16.0"
 
 dependencies:
+  # EKL stack
+  - name: elasticsearch
+    version: "8.5.1"
+    repository: https://helm.elastic.co
+    condition: elasticsearch.enabled
+
+  - name: logstash
+    version: "8.5.1"
+    repository: https://helm.elastic.co
+    condition: logstash.enabled
+
+  - name: kibana
+    version: "8.5.1"
+    repository: https://helm.elastic.co
+    condition: kibana.enabled
+
+  # Prometheus stack
   - name: kube-prometheus-stack
     version: "82.4.3"
     repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled
 
   - name: zipkin
-    version: 0.4.0
+    version: "0.4.0"
     repository: https://zipkin.io/zipkin-helm
+    condition: zipkin.enabled
 
+  # Application dependencies
   - name: kafka
     version: "18.0.0"
     repository: "https://helm-charts.itboon.top/kafka/"
+    condition: kafka.enabled
 
   - name: postgresql
     version: "18.3.0"
     repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
 
   - name: keycloak
     version: "18.10.0"
     repository: "https://codecentric.github.io/helm-charts"
+    condition: keycloak.enabled
 
+ # Services
   - name: accounts
     version: "0.1.0"
     repository: "file://charts/accounts"
+    condition: accounts.enabled
 
   - name: cash
     version: "0.1.0"

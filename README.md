@@ -28,6 +28,13 @@
 * Testcontainers (PostgreSQL, Keycloak)
 * Spring Security Test
 * Helm tests
+### Мониторинг и логирование
+* Prometheus - сбор метрик
+* Grafana - визуализация метрик
+* Zipkin - распределённый трейсинг
+* Elasticsearch	- хранение логов
+* Logstash - обработка логов
+* Kibana - анализ логов
 
 ---
 
@@ -236,6 +243,103 @@ Spring Cloud Config НЕ используется.
 
 ---
 
+### Monitoring (Prometheus + Grafana)
+Prometheus собирает метрики с микросервисов через endpoint:
+```
+/actuator/prometheus
+```
+**Метрики включают:**
+* HTTP запросы
+* JVM метрики
+* количество ошибок
+* бизнес-метрики
+
+**В системе настроены дашборды Grafana:**
+
+* CPU usage
+* JVM metrics
+* Business Metric
+* количество неудачных переводов
+* ошибки отправки нотификаций
+* ошибки операций cash
+
+Пример метрик:
+```
+business_notification_failed_total
+business_transfer_failed_total
+business_cash_failed_total
+```
+Grafana автоматически загружает dashboards из Helm chart.
+
+**Prometheus настроен на отправку алертов при возникновении проблем.**
+
+Примеры алертов:
+
+* ServiceDown - сервис недоступен
+* HighHttp5xx - большое количество HTTP 5xx
+* NotificationSendFailed - ошибка отправки нотификаций
+
+**Для анализа распределённых запросов используется Zipkin**
+
+Трассировка реализована через Spring Boot Observability / Micrometer Tracing.
+
+Каждый запрос получает:
+```
+traceId
+spanId
+```
+--- 
+
+### EKL-стек
+
+Для обработки логов используется стек:
+
+* Elasticsearch
+* Logstash
+* Kibana
+
+**Логи отправляются в формате JSON, что упрощает их обработку и индексирование.**
+
+Пример сообщения:
+```
+{
+"timestamp": "2026-03-06T12:10:22",
+"level": "INFO",
+"service": "cash-service",
+"message": "Cash withdraw operation",
+"traceId": "8c1f9b2d",
+"spanId": "9c83d12a"
+}
+```
+**Логирование в микросервисах**
+
+В микросервисах используется:
+* SLF4J
+* Logback
+
+Logstash используется для:
+* приёма логов от микросервисов
+* обработки сообщений
+* фильтрации чувствительных данных
+* отправки логов в Elasticsearch
+
+**Все логи сохраняются в индексах Elasticsearch.**
+
+Используемый индекс:
+
+```
+bank-logs-*
+```
+Индексы создаются автоматически при поступлении логов.
+
+**Kibana используется для:**
+* просмотра логов
+* поиска по логам
+* анализа ошибок
+* диагностики проблем системы
+
+---
+
 ### Helm Charts
 
 Используется зонтичный Helm chart:
@@ -249,6 +353,11 @@ Spring Cloud Config НЕ используется.
 * front-ui
 * postgresql
 * keycloak
+* prometheus-steck (+ grafana)
+* zipkin
+* elasticsearch
+* logstash
+* kibana
 
 ---
 

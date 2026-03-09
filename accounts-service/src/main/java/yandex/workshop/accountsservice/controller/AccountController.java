@@ -57,44 +57,27 @@ public class AccountController implements ApiApi {
     @PostMapping(value = "/cash")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
     public OperationResponse cash(@RequestBody CashRequest request) {
-        OperationResponse response;
-        log.debug("Authorities in CASH: {}", request);
-        try {
-            accountService.cash(request);
-                response = new OperationResponse()
-                    .success(true)
-                    .message("Операция выполнена: " + request.getValue());
+        log.debug("Cash request: {}", request);
 
-        } catch (RuntimeException e) {
-            log.error("Ошибка при выполнении операции с наличными: {}", e.getMessage());
-            response = new OperationResponse()
-                .success(false)
-                .message("Ошибка при выполнении операции: " + e.getMessage());
-        }
-        return response;
+        accountService.cash(request);
+
+        return new OperationResponse()
+            .success(true)
+            .message(String.format("Операция %s выполнена: %s",
+                request.getAction(), request.getValue()));
     }
 
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
     public OperationResponse transfer(@RequestBody TransferRequest request) {
-        log.debug("Authorities in TRANSFER: {}", request);
-        OperationResponse response;
-        try {
-            accountService.transfer(request);
-            response = new OperationResponse()
-                .success(true)
-                .message("Перевод выполнен: "
-                    + request.getAmount()
-                    + " со счёта " + request.getFromLogin()
-                    + " на счёт " + request.getToLogin());
-        } catch (RuntimeException e) {
-            log.error("Ошибка при выполнении перевода: {}", e.getMessage());
-            response = new OperationResponse()
-                .success(false)
-                .message("Ошибка при выполнении перевода: " + e.getMessage());
-        }
+        log.debug("Transfer request: {}", request);
 
-        return response;
+        accountService.transfer(request);
+
+        return new OperationResponse()
+            .success(true)
+            .message(String.format("Перевод выполнен: %s  со счёта %s  на счёт %s ",
+            request.getAmount() ,request.getFromLogin(),request.getToLogin()));
     }
 
     @GetMapping(value = "{accountLogin}/owner",

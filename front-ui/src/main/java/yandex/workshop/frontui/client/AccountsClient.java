@@ -2,6 +2,7 @@ package yandex.workshop.frontui.client;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import yandex.workshop.api.model.UpdateAccountRequest;
@@ -12,8 +13,8 @@ import yandex.workshop.frontui.dto.AccountDto;
 public class AccountsClient {
     private final WebClient webClient;
 
-//    @Value("${gateway.url}")
-    private String gatewayUrl = "http://localhost:8081";
+    @Value("${gateway.url}")
+    private String gatewayUrl;
 
     public AccountDto getMyAccount() {
         return webClient.get()

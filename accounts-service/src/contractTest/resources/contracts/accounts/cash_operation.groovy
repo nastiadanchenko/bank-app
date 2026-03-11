@@ -22,6 +22,13 @@ Contract.make {
 
     response {
         status OK()
-        body("Операция выполнена: PUT 100.00")
+        headers {
+            contentType(applicationJson())
+        }
+        body(
+                success: true,
+                message: "Операция выполнена: 100.00",
+                data: null
+        )
     }
 }

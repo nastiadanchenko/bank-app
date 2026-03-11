@@ -15,7 +15,10 @@ public class NotificationConsumer {
     )
     public void consume(NotificationRequest event) {
 
-        log.info("Notification received: {}", event);
+        log.info("Notification received service={} user={} message={}",
+            event.getServiceName(),
+            event.getLogin(),
+            event.getMessage());
 
     }
 

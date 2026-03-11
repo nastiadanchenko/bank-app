@@ -10,7 +10,183 @@ global:
     postgresqlPassword: password
     postgresqlUsername: postgres
 
+########################################
+# ELASTICSEARCH
+########################################
+elasticsearch:
+  enabled: true
+  imageTag: "8.12.0"
+  replicas: 1
+  minimumMasterNodes: 1
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  protocol: http
+  esConfig:
+    elasticsearch.yml: |
+      xpack.security.enabled: false
+      discovery.type: single-node
+  volumeClaimTemplate:
+    storageClassName: "standard"
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: "2Gi"
+  extraEnvs:
+    - name: ES_JAVA_OPTS
+      value: "-Xms1g -Xmx1g"
+
+########################################
+# LOGSTASH
+########################################
+logstash:
+  enabled: true
+  imageTag: "9.0.0"
+  replicas: 1
+  service:
+    type: ClusterIP
+    ports:
+      - name: tcp
+        port: 5044
+        protocol: TCP
+  logstashPipeline:
+    logstash.conf: |
+      input {
+        kafka {
+          bootstrap_servers => "bank-app-kafka.default.svc.cluster.local:9092"
+          topics => ["logs"]
+          codec => json
+          auto_offset_reset => "earliest"
+        }
+      }
+      filter {
+      
+        if [password] {
+          mutate {
+            update => { "password" => "****" }
+          }
+        }
+        date {
+          match => ["timestamp", "ISO8601"]
+        }
+      }
+      
+      output {
+        elasticsearch {
+          hosts => ["http://bank-app-elasticsearch-master.default.svc.cluster.local:9200"]
+          ssl_enabled => false 
+          ssl_verification_mode => "none"
+          index => "bank-logs-%{+YYYY.MM.dd}"
+        }
+      stdout { codec => rubydebug }
+      }
+
+  extraEnvs:
+    - name: LOG_LEVEL
+      value: "debug"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+########################################
+# KIBANA
+########################################
+kibana:
+  enabled: true
+  imageTag: "8.12.0"
+  replicas: 1
+  elasticsearchHosts: "http://bank-app-elasticsearch-master.default.svc.cluster.local:9200"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - kibana.local
+  elasticsearch:
+    security:
+      auth:
+        enabled: false
+
+########################################
+# PROMETHEUS + GRAFANA
+########################################
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.local
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: {}
+      ruleSelector: {}
+  prometheusOperator:
+    enabled: true
+  resources:
+    requests:
+      memory: 512Mi
+
+########################################
+# ZIPKIN
+########################################
+zipkin:
+  enabled: true
+  ingress:
+    enabled: true
+    host: "zipkin.local"
+    selfTracing:
+      enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+  extraEnv:
+    - name: JAVA_OPTS
+      value: "-Xms265m -Xmx256m -XX:+ExitOnOutOfMemoryError"
+    - name: STORAGE_TYPE
+      value: "elasticsearch"
+    - name: ES_HOSTS
+      value: "http://bank-app-elasticsearch-master.default.svc.cluster.local:9200"
+    - name: ES_USERNAME
+      value: "elastic"
+    - name: ES_PASSWORD
+      valueFrom:
+          secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+
+########################################
+# KAFKA
+########################################
 kafka:
+  enabled: true
   ui:
     enabled: true
     service:
@@ -21,9 +197,11 @@ kafka:
       ingressClassName: nginx
       hostname: kafka-ui.local
 
-
-# PostgreSQL для Keycloak и accounts
+########################################
+# POSTGRESQL
+########################################
 postgresql:
+  enabled: true
   image:
     registry: docker.io
     repository: bitnami/postgresql
@@ -36,14 +214,16 @@ postgresql:
     service:
       ports:
         postgresql: 5432
-
   initdb:
     scripts:
       create-accounts-db.sql: |
         CREATE DATABASE accounts;
 
-
+########################################
+# KEYCLOAK
+########################################
 keycloak:
+  enabled: true
   image:
     repository: docker.io/codecentric/keycloakx
     tag: latest
@@ -51,36 +231,31 @@ keycloak:
     type: ClusterIP
     ports:
       http: 8085
-  # admin credentials
+  postgresql:
+    enabled: false
+  externalDatabase:
+    host: bank-app-postgresql.default.svc.cluster.local
+    port: 5432
+    database: keycloak
+    user: postgres
+    existingSecret: keycloak-db-secret
+    existingSecretPasswordKey: password
   secret:
     create: true
     username: admin
     password: admin
-  extraEnv: |
-    - name: KC_DB
-      value: postgres
-    - name: KC_DB_URL
-      value: jdbc:postgresql://bank-app-postgresql:5432/keycloak
-    - name: KC_DB_USERNAME
-      value: postgres
-    - name: KC_DB_PASSWORD
-      value: password
-    - name: KC_HOSTNAME
-      value: keycloak.local
-    # realm import
-    - name: KEYCLOAK_IMPORT
-      value: /opt/keycloak/data/import/bank-realm.json
-
   extraVolumes: |
     - name: realm-config
       configMap:
         name: keycloak-realm
-
   extraVolumeMounts: |
     - name: realm-config
       mountPath: /opt/keycloak/data/import
       readOnly: true
 
+########################################
+# APPLICATION SERVICES
+########################################
 accounts:
   enabled: true
   image:
@@ -105,7 +280,6 @@ front-ui:
   service:
     port: 8080
 
-
 notifications:
   enabled: true
   image:
@@ -113,7 +287,6 @@ notifications:
     tag: "0.0.1-SNAPSHOT"
   service:
     port: 8086
-
 
 transfer:
   enabled: true

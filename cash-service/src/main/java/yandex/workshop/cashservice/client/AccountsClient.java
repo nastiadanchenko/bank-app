@@ -3,8 +3,8 @@ package yandex.workshop.cashservice.client;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.OperationResponse;
 
 @Component
 public class AccountsClient {
@@ -15,14 +15,13 @@ public class AccountsClient {
         this.accountsWebClient = accountsWebClient;
     }
 
-    public String sendTransaction(CashRequest request) {
+    public OperationResponse sendTransaction(CashRequest request) {
         return accountsWebClient
             .post()
             .uri("/accounts/cash")
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(String.class)
-            .onErrorResume(throwable -> Mono.just("Ошибка при обращении к accounts-service: " + throwable.getMessage()))
+            .bodyToMono(OperationResponse.class)
             .block();
     }
 

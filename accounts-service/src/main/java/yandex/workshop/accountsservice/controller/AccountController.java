@@ -19,6 +19,7 @@ import yandex.workshop.accountsservice.service.AccountService;
 import yandex.workshop.api.model.AccountOwnerResponse;
 import yandex.workshop.api.model.AccountResponse;
 import yandex.workshop.api.model.CashRequest;
+import yandex.workshop.api.model.OperationResponse;
 import yandex.workshop.api.model.TransferRequest;
 import yandex.workshop.api.model.UpdateAccountRequest;
 
@@ -43,7 +44,6 @@ public class AccountController implements ApiApi {
     public AccountResponse updateAccount(Authentication authentication,
                                          @RequestBody UpdateAccountRequest dto) {
 
-//        log.debug("Authorities in PUT: {}", token.getAuthorities());
         return accountService.updateProfile(authentication, dto);
     }
 
@@ -56,24 +56,28 @@ public class AccountController implements ApiApi {
 
     @PostMapping(value = "/cash")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
-    public String cash(@RequestBody CashRequest request) {
-        log.debug("Authorities in CASH: {}", request);
+    public OperationResponse cash(@RequestBody CashRequest request) {
+        log.debug("Cash request: {}", request);
+
         accountService.cash(request);
 
-        return "Операция выполнена: "
-            + request.getAction()
-            + " " + request.getValue();
+        return new OperationResponse()
+            .success(true)
+            .message(String.format("Операция %s выполнена: %s",
+                request.getAction(), request.getValue()));
     }
 
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('SERVICE') && hasAuthority('accounts.write')")
-    public String transfer(@RequestBody TransferRequest request) {
-        log.debug("Authorities in TRANSFER: {}", request);
+    public OperationResponse transfer(@RequestBody TransferRequest request) {
+        log.debug("Transfer request: {}", request);
+
         accountService.transfer(request);
-        return "Перевод выполнен: "
-            + request.getAmount()
-            + " со счёта " + request.getFromLogin()
-            + " на счёт " + request.getToLogin();
+
+        return new OperationResponse()
+            .success(true)
+            .message(String.format("Перевод выполнен: %s  со счёта %s  на счёт %s ",
+            request.getAmount() ,request.getFromLogin(),request.getToLogin()));
     }
 
     @GetMapping(value = "{accountLogin}/owner",

@@ -25,7 +25,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import yandex.workshop.api.model.CashRequest;
@@ -41,7 +40,6 @@ import yandex.workshop.frontui.dto.AccountDto;
 @WebMvcTest(FrontController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource()
 class FrontControllerTest {
 
     @Autowired

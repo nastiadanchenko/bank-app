@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,7 @@ import yandex.workshop.frontui.client.AccountsClient;
 import yandex.workshop.frontui.client.CashClient;
 import yandex.workshop.frontui.client.TransferClient;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class FrontController {
@@ -30,8 +32,13 @@ public class FrontController {
 
     @GetMapping("/")
     public String index(Model model) {
+        log.debug("Loading index page");
+
         var account = accountsClient.getMyAccount();
 
+        log.info("Account page opened login={} balance={}",
+            account.login(),
+            account.balance());
         model.addAttribute("name", account.name());
         model.addAttribute("birthdate", account.birthdate());
         model.addAttribute("sum", account.balance());
@@ -45,11 +52,14 @@ public class FrontController {
         @RequestParam String name,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthdate
     ) {
+        log.info("Account update requested name={} birthdate={}", name, birthdate);
+
         var req = new UpdateAccountRequest()
             .name(name)
             .birthdate(birthdate);
 
         accountsClient.updateAccount(req);
+        log.info("Account update completed name={}", name);
         return "redirect:/";
     }
 
@@ -60,16 +70,32 @@ public class FrontController {
         RedirectAttributes redirectAttributes,
         OAuth2AuthenticationToken token
     ) {
+        String login = token.getPrincipal().getAttribute("preferred_username");
+        log.info("Cash request action={} login={} amount={}",
+            action,
+            login,
+            value);
+
         var req = new CashRequest()
             .value(value)
             .action(action)
             .accountId(token.getName())
-            .accountLogin(token.getPrincipal().getAttribute("preferred_username"));
+            .accountLogin(login);
 
         OperationResponse resp = cashClient.cash(req);
         if (Boolean.TRUE.equals(resp.getSuccess())) {
+            log.info("Cash operation successful login={} action={} amount={} message={}",
+                login,
+                action,
+                value,
+                resp.getMessage());
             redirectAttributes.addFlashAttribute("info", resp.getMessage());
         } else {
+            log.warn("Cash operation failed login={} action={} amount={} reason={}",
+                login,
+                action,
+                value,
+                resp.getMessage());
             redirectAttributes.addFlashAttribute("errors", List.of(resp.getMessage()));
         }
         return "redirect:/";
@@ -83,6 +109,12 @@ public class FrontController {
         OAuth2AuthenticationToken token
     ) {
         String fromLogin = token.getPrincipal().getAttribute("preferred_username");
+
+        log.info("Transfer request from={} to={} amount={}",
+            fromLogin,
+            login,
+            value);
+
         var req = new TransferRequest()
             .fromLogin(fromLogin)
             .toLogin(login)
@@ -90,8 +122,17 @@ public class FrontController {
 
         OperationResponse resp = transferClient.transfer(req);
         if (Boolean.TRUE.equals(resp.getSuccess())) {
+            log.info("Transfer request from={} to={} amount={}",
+                fromLogin,
+                login,
+                value);
             redirectAttributes.addFlashAttribute("info", resp.getMessage());
         } else {
+            log.warn("Transfer failed from={} to={} amount={} reason={}",
+                fromLogin,
+                login,
+                value,
+                resp.getMessage());
             redirectAttributes.addFlashAttribute("errors", List.of(resp.getMessage()));
         }
 

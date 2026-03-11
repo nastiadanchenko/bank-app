@@ -6,10 +6,6 @@ metadata:
     app.kubernetes.io/name: {{ include "accounts.fullname" . }}
     app.kubernetes.io/component: backend
 data:
-  DATABASE_HOST: {{ .Values.env.DATABASE_HOST | quote }}
-  DATABASE_PORT: {{ .Values.env.DATABASE_PORT | quote }}
-  DATABASE_NAME: {{ .Values.env.DATABASE_NAME | quote }}
-  DATABASE_USERNAME: {{ .Values.env.DATABASE_USERNAME | quote }}
-  KEYCLOAK_OAUTH2_URL: {{ .Values.env.KEYCLOAK_OAUTH2_URL | quote }}
-  ACCOUNT_SERVICE_OAUTH2_CLIENT_ID: {{ .Values.env.ACCOUNT_SERVICE_OAUTH2_CLIENT_ID | quote }}
-  BOOTSTRAP_SERVERS: {{ .Values.env.BOOTSTRAP_SERVERS | quote }}
+  {{- range $key, $val := .Values.env }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}

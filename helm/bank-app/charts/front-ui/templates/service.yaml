@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: {{ include "front-ui.fullname" . }}
   labels:
+    app: front-ui-service
     {{- include "front-ui.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
@@ -12,4 +13,5 @@ spec:
       protocol: TCP
       name: http
   selector:
+    app: front-ui-service
     {{- include "front-ui.selectorLabels" . | nindent 4 }}

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -22,6 +23,7 @@ import yandex.workshop.api.model.TransferRequest;
 import yandex.workshop.api.model.UpdateAccountRequest;
 import yandex.workshop.sharedkafka.NotificationProducer;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -38,10 +40,14 @@ public class AccountService {
     private final NotificationProducer notificationProducer;
 
     public AccountResponse getCurrentAccount(Authentication authentication) {
+        log.debug("Request to get current account");
+
         Jwt jwt = (Jwt) authentication.getPrincipal();
         UUID keycloakId = UUID.fromString(jwt.getSubject());
         Account account = accountRepository.findByKeycloakId(keycloakId)
             .orElseGet(() -> {
+                log.info("Account not found. Creating new account for keycloakId={}", keycloakId);
+
                 Account newAccount = new Account();
                 newAccount.setKeycloakId(keycloakId);
                 newAccount.setFirstName(jwt.getClaimAsString("given_name"));
@@ -52,6 +58,7 @@ public class AccountService {
                 return accountRepository.save(newAccount);
             });
 
+        log.info("Account retrieved login={}, balance={}", account.getLogin(), account.getBalance());
         return buildDto(account);
     }
 
@@ -76,8 +83,14 @@ public class AccountService {
         Jwt jwt = (Jwt) authentication.getPrincipal();
         UUID keycloakId = UUID.fromString(jwt.getSubject());
         String[] nams = dto.getName().split(" ", 2);
+
+        log.info("Update profile request for keycloakId={}", keycloakId);
+
         Account account = accountRepository.findByKeycloakId(keycloakId)
-            .orElseThrow(() -> new NoSuchElementException("Not found account with keycloakId " + keycloakId));
+            .orElseThrow(() -> {
+                log.error("Account not found for keycloakId={}", keycloakId);
+                return new NoSuchElementException("Not found account with keycloakId " + keycloakId);
+            });
         if (nams.length != 0) {
             if (!nams[0].isBlank()) {
                 account.setFirstName(nams[0]);
@@ -90,11 +103,15 @@ public class AccountService {
             account.setBirthDate(dto.getBirthdate());
         }
 
-        sendNotification("Account updated for user: " +  account.getLogin(), account.getKeycloakId().toString());
-
+        sendNotification("Account updated for user: " + account.getLogin(),
+            account.getKeycloakId().toString(), account.getLogin());
+        log.info("Account profile updated login={}, birthDate={}",
+            account.getLogin(),
+            account.getBirthDate());
         return buildDto(accountRepository.save(account));
 
     }
+
     public AccountResponse updateProfile(String keycloakId, UpdateAccountRequest dto) {
         String[] nams = dto.getName().split(" ", 2);
         Account account = accountRepository.findByKeycloakId(UUID.fromString(keycloakId))
@@ -111,7 +128,8 @@ public class AccountService {
             account.setBirthDate(dto.getBirthdate());
         }
 
-        sendNotification("Account updated for user: " +  account.getLogin(), account.getKeycloakId().toString());
+        sendNotification("Account updated for user: " + account.getLogin(),
+            account.getKeycloakId().toString(), account.getLogin());
 
         return buildDto(accountRepository.save(account));
 
@@ -144,7 +162,16 @@ public class AccountService {
         Account fromAccount = getAccountByLogin(request.getFromLogin());
         Account toAccount = getAccountByLogin(request.getToLogin());
 
+        log.info("Transfer started from={} to={} amount={}",
+            request.getFromLogin(),
+            request.getToLogin(),
+            request.getAmount());
+
         if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+            log.warn("Transfer rejected due to insufficient funds from={} balance={} requested={}",
+                fromAccount.getLogin(),
+                fromAccount.getBalance(),
+                request.getAmount());
             throw new IllegalArgumentException("Недостаточно средств на счёте " + fromAccount.getId());
         }
 
@@ -153,6 +180,11 @@ public class AccountService {
 
         accountRepository.save(fromAccount);
         accountRepository.save(toAccount);
+
+        log.info("Transfer completed from={} to={} amount={}",
+            fromAccount.getLogin(),
+            toAccount.getLogin(),
+            request.getAmount());
     }
 
 
@@ -166,11 +198,19 @@ public class AccountService {
         Account account = accountRepository.findByKeycloakId(UUID.fromString(sub))
             .orElseThrow(() -> new NoSuchElementException("Not found account with keycloakId " + sub));
 
+        log.info("Cash operation action={} account={} amount={}",
+            request.getAction(),
+            account.getLogin(),
+            request.getValue());
 
         if (request.getAction().equals("PUT")) {
             account.setBalance(account.getBalance().add(request.getValue()));
         } else if (request.getAction().equals("GET")) {
             if (account.getBalance().compareTo(request.getValue()) < 0) {
+                log.warn("Cash withdraw rejected account={} balance={} requested={}",
+                    account.getLogin(),
+                    account.getBalance(),
+                    request.getValue());
                 throw new IllegalArgumentException("Недостаточно средств на счёте " + account.getId());
 
             }
@@ -179,17 +219,30 @@ public class AccountService {
             throw new IllegalArgumentException("Unknown cash action: " + request.getAction());
         }
 
+        log.info("Cash operation completed action={} account={} newBalance={}",
+            request.getAction(),
+            account.getLogin(),
+            account.getBalance());
+
         accountRepository.save(account);
     }
 
-    private void sendNotification(String message, String userId) {
+    private void sendNotification(String message, String userId, String login) {
+        log.info("Sending notification service={} user={} login={} topic={}",
+            serviceName,
+            userId,
+            login,
+            topicName);
+
         notificationProducer.send(
             new NotificationRequest()
                 .serviceName(serviceName)
                 .message(message)
                 .timestamp(Instant.now())
-                .userId(userId),
+                .userId(userId)
+                .login(login),
             topicName);
+
     }
 }
 

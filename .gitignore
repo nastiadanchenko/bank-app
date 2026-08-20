@@ -35,3 +35,11 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local runtime data & artifacts ###
+lib/
+docker/**/es_data/
+docker/**/grafana_data/
+docker/**/prometheus_data/
+0_Build*.txt
+

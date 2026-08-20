@@ -25,6 +25,10 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
+      # Файлы закоммичены из Windows — гарантируем exec-бит обёртке Gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       # Тесты используют Testcontainers (PostgreSQL, Kafka) — Docker на ubuntu-runner доступен из коробки
       - name: Build and test
         run: ./gradlew clean build

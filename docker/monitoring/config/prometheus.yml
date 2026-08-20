@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 30s      # Интервал сбора метрик
+  evaluation_interval: 30s  # Интервал оценки правил
+  scrape_timeout: 10s       # Тайм-аут сбора метрик
+
+  # Конфигурация сбора метрик
+scrape_configs:
+  # Базовый мониторинг самого Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          app: 'prometheus'
+
+  - job_name: 'bank-services'
+    metrics_path: '/actuator/prometheus'  # Путь к эндпоинту метрик
+    static_configs:
+      - targets: ['host.docker.internal:8080', 'host.docker.internal:8081', 'host.docker.internal:8083', 'host.docker.internal:8084', 'host.docker.internal:8086']
+        labels:
+          app: 'bank-services'
+    scrape_interval: 30s
+    scheme: http
+
+rule_files:
+  - "alerts.yml"

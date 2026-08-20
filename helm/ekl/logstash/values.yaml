@@ -1,0 +1,63 @@
+logstash:
+  imageTag: "9.0.0"
+  replicas: 1
+  service:
+     type: ClusterIP
+     loadBalancerIP: ""
+     ports:
+       - name: beats
+         port: 5044
+         protocol: TCP
+         targetPort: 5044
+  # Глобальные настройки Logstash (аналог logstash.yml)
+#  logstashConfig:
+#    logstash.yml: |
+#      http.host: "0.0.0.0"
+#      xpack.monitoring.enabled: false
+#      config.reload.automatic: true
+#      config.reload.interval: "10s"
+
+  # Пайплайн принимает логи от Filebeat на порту 5044, парсит их с помощью grok,
+  # а затем отправляет в Elasticsearch
+  logstashPipeline:
+    # Задаётся содержимое файла logstash.yml
+    logstash.conf: |
+      input {
+        beats {
+          port => 5044
+          codec => json
+        }
+      }
+      filter {
+        grok {
+          match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}" }
+        }
+      }
+      output {
+        elasticsearch {
+          hosts => ["http://elasticsearch-master.svc.default:9200"]
+          user => "elastic"
+          password => "${ES_PASSWORD}"
+          ssl_enabled => true 
+          ssl_verification_mode => "none"
+          index => "logs-%{+YYYY.MM.dd}"
+        }
+      }
+
+  extraEnvs:
+    - name: LOG_LEVEL
+      value: "debug"
+    - name: ES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+#  podAnnotations:
+#    app: logstash
+#  resources:
+#    requests:
+#      memory: "512Mi"
+#      cpu: "200m"
+#    limits:
+#      memory: "1Gi"
+#      cpu: "500m"

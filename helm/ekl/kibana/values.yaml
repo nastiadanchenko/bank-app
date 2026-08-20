@@ -1,0 +1,27 @@
+kibana:
+  imageTag: "8.13.0"
+  replicas: 1
+
+  elasticsearchHosts: "https://elasticsearch-master:9200"
+
+  elasticsearch:
+    security:
+      auth:
+        enabled: true
+        kibanaPassword: "${ELASTICSEARCH_PASSWORD}"  # пароль из secret
+        kibanaUsername: "elastic"
+
+  extraEnvs:
+    - name: ELASTICSEARCH_USERNAME
+      value: "elastic"
+    - name: ELASTICSEARCH_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - kibana.local

@@ -1,0 +1,33 @@
+groups:
+  - name: microservice-alerts
+    rules:
+
+      - alert: ServiceDown
+        expr: up{job="cash-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cash-service
+        annotations:
+          summary: "Cash-service is down"
+          description: "Prometheus cannot scrape cash-service for more than 1 minute"
+
+      - alert: HighHttp5xxErrorRate
+        expr: increase(http_server_requests_seconds_count{status=~"5..", job="cash-service"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: cash-service
+        annotations:
+          summary: "High rate of HTTP 5xx errors"
+          description: "More than 5 HTTP 5xx responses in the last 5 minutes for cash-service"
+
+      - alert: NotificationSendFailed
+        expr: increase(business_notification_failed_total{job="cash-service"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: cash-service
+        annotations:
+          summary: "Notification sending failed"
+          description: "Detected failed notification sending attempts in cash-service"
